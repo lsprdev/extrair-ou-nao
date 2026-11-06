@@ -6,7 +6,7 @@
   <title>Extrair ou não extrair</title>
   <meta name="description" content="Apresentação animada do projeto Extrair ou não extrair — Orion, de Gabriel Alves e Gabriel Lopes Pereira.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%239085e9'/%3E%3Cstop offset='1' stop-color='%233fc6e0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9' fill='url(%23g)'/%3E%3Ccircle cx='11' cy='11' r='3.5' fill='%23fff'/%3E%3Ccircle cx='21' cy='21' r='3.5' fill='%23fff' fill-opacity='.7'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css?v=3">
+  <link rel="stylesheet" href="styles.css?v=6">
 </head>
 <body>
   <div class="backdrop"><div class="blob a"></div><div class="blob b"></div><div class="blob c"></div><div class="grade"></div></div>
@@ -138,24 +138,22 @@
     </section>
 
     <section class="slide" data-parte="Parte 2 · Formas de dividir" data-quem="lopes" data-builds="2" id="s-quanta">
-      <div class="conteudo">
-        <span class="kicker">Parte 2 · Quanta e a opção --assincronas</span>
-        <h2>Separar o deploy <span class="grad">não separa a execução</span></h2>
-        <div class="quanta-ui">
-          <div>
-            <p class="nota" style="margin:0">Um quantum junta componentes ligados por um mesmo artefato, por chamada síncrona ou por banco compartilhado.</p>
-            <div class="quanta-num"><span class="v num" id="q-num">1</span><span class="u" id="q-u">quantum</span></div>
-            <div class="mensagem" id="q-msg"></div>
-            <div class="cli" id="q-cli"></div>
-            <div class="controle"><div class="rot">Forma</div><div class="seg" id="q-forma"></div></div>
-            <div class="controle"><div class="rot">Banco de dados</div><div class="seg" id="q-banco"></div></div>
-            <div class="controle"><div class="rot">Cenários prontos</div><div class="presets" id="q-presets"></div></div>
-          </div>
-          <div class="cartao painel grafo-wrap">
-            <svg class="grafo interativo" id="grafo-quanta"></svg>
-            <div class="grupos-leg" id="q-leg"></div>
-            <p class="nota" style="margin:8px 0 0">Clique numa seta para trocar entre chamada síncrona e fila. Cada mudança roda o <code>meu_quantum.py</code> no servidor.</p>
-          </div>
+      <div class="conteudo duas">
+        <div>
+          <span class="kicker">Parte 2 · Quanta</span>
+          <h2>Separar o deploy <span class="grad">não separa a execução</span></h2>
+          <p class="lead">Um quantum é um grupo que <b>falha junto</b>: componentes ligados por chamada síncrona ou pelo mesmo banco.</p>
+          <div class="quanta-num"><span class="v num" id="q-num">1</span><span class="u" id="q-u">quantum</span></div>
+          <ul class="checklist" id="q-check">
+            <li data-c="filas"><i></i><span><b>As 4 entradas por fila</b>, em vez de chamada direta</span></li>
+            <li data-c="banco"><i></i><span><b>Banco próprio</b> para Notificações</span></li>
+          </ul>
+          <div class="mensagem" id="q-msg"></div>
+          <div class="cli" id="q-cli"></div>
+        </div>
+        <div class="cartao painel grafo-wrap">
+          <svg class="grafo" id="grafo-quanta"></svg>
+          <div class="grupos-leg" id="q-leg"></div>
         </div>
       </div>
     </section>
@@ -262,22 +260,6 @@
       </div>
     </section>
 
-    <section class="slide" data-parte="Parte 4 · Decisão (ADR)" data-quem="alves" data-builds="3" id="s-adr-medicao">
-      <div class="conteudo">
-        <span class="kicker">Parte 4 · Como mediria</span>
-        <h2>Do <span class="grad">modelo</span> para a <span class="grad">produção</span></h2>
-        <table class="comp-tab medicao" id="medicao">
-          <thead><tr><th>O que</th><th>Hoje vem de</th><th>Em produção viria de</th></tr></thead>
-          <tbody>
-            <tr data-build="0"><th>Artefatos, dependências, chamadas diretas, quanta</th><td><span class="fonte cod">código</span><code>meu_quantum.py</code>, conferido pelos testes</td><td>O próprio código</td></tr>
-            <tr data-build="1"><th>Falha de 1% por chamada, 99,9% por artefato, minutos fora</th><td><span class="fonte hip">hipótese</span>Nossa (1%) e da Aula 17 (99,9%)</td><td>Taxa de erros e timeouts nos logs; monitoramento de disponibilidade de cada artefato</td></tr>
-            <tr data-build="2"><th>Duplicações e incertos</th><td><span class="fonte ens">ensaio</span>2.000 compras simuladas</td><td>Conciliação com o extrato do provedor; contagem de cobranças indeterminadas</td></tr>
-            <tr data-build="3"><th>Condição de falseamento</th><td><span class="fonte hip">ainda não medido</span></td><td>p95 do fechamento e registro de incidentes</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
     <!-- ===================================================== Encerramento -->
     <section class="slide" data-parte="Encerramento" data-builds="0" id="s-fim">
       <div class="conteudo capa">
@@ -302,6 +284,6 @@
   </footer>
 
   <div class="tip" id="tip"></div>
-  <script src="app.js?v=3"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>

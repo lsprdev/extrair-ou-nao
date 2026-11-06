@@ -562,7 +562,7 @@ kbd {
 @keyframes gira { to { transform: rotate(360deg); } }
 
 /* ============================================================ Responsivo */
-@media (max-width: 1100px) {
+@media (max-width: 760px) {
   .duas, .duas.meio, .quanta-ui { grid-template-columns: 1fr; gap: 24px; }
   .slide { overflow-y: auto; align-content: start; }
   .hip-grade, .concl, .custos, .hero-num { grid-template-columns: 1fr 1fr; }
@@ -783,7 +783,7 @@ kbd {
 
 #s-fim .frase-final { font-size: clamp(32px, 4vw, 60px); margin-bottom: 10px; }
 
-@media (max-width: 1100px) {
+@media (max-width: 760px) {
   .falhas, .alternativas, .tiles { grid-template-columns: 1fr 1fr; }
   .decisao-faixa { grid-template-columns: 1fr 1fr 1fr; }
   .df-esq, .df-custo { grid-column: 1 / -1; }
@@ -792,3 +792,14 @@ kbd {
   .falhas, .alternativas, .tiles { grid-template-columns: 1fr; }
   .orador b { display: none; }
 }
+
+/* quanta simplificado */
+.checklist { list-style: none; padding: 0; margin: 4px 0 14px; display: grid; gap: 8px; }
+.checklist li { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 60%, transparent); color: var(--text-2); font-size: 15px; transition: border-color .4s, background .4s; }
+.checklist li i { flex: none; width: 22px; height: 22px; border-radius: 7px; border: 2px solid var(--border-2); display: grid; place-items: center; font-style: normal; transition: all .35s cubic-bezier(.3,1.6,.5,1); }
+.checklist li.on { border-color: color-mix(in srgb, var(--good) 50%, transparent); background: color-mix(in srgb, var(--good) 8%, transparent); color: var(--text); }
+.checklist li.on i { background: var(--good); border-color: var(--good); }
+.checklist li.on i::after { content: "✓"; color: #fff; font-size: 13px; font-weight: 800; }
+#s-quanta .cli .linha-cmd { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#s-quanta .cli { cursor: help; }

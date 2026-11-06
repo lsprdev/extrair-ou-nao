@@ -30,6 +30,7 @@ function el(tag, attrs = {}, html = "", pai) {
   return e;
 }
 function tween(dur, fn, ease = easeOut) {
+  if (dur <= 0) { fn(1, 1); return () => {}; }
   const t0 = performance.now();
   let id, parado = false;
   const passo = (agora) => {
@@ -283,10 +284,22 @@ function ir(i, b, forcar = false) {
   if (entrou) { itens.forEach((e) => e.classList.remove("on")); void s.offsetWidth; }
   itens.forEach((e) => e.classList.toggle("on", +e.dataset.build <= b));
   idx = i; build = b; iniciado = true;
+  ajustarEscala();
   try { ganchos[s.id]?.(b, entrou); } catch (erro) { console.error(erro); }
   atualizarMoldura();
   history.replaceState(null, "", `#${i + 1}.${b}`);
 }
+// Se o conteúdo for mais alto que a tela, reduz o slide inteiro em vez de invadir o cabeçalho.
+function ajustarEscala() {
+  const s = slides[idx], c = $(".conteudo", s);
+  if (!c) return;
+  c.style.zoom = 1;
+  if (innerWidth <= 720) return;
+  const cs = getComputedStyle(s);
+  const disp = s.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+  c.style.zoom = Math.max(0.5, Math.min(1, disp / c.scrollHeight));
+}
+addEventListener("resize", () => slides.length && ajustarEscala());
 const proximo = () => (build < totalBuilds(idx) ? ir(idx, build + 1) : idx < slides.length - 1 && ir(idx + 1, 0));
 const anterior = () => (build > 0 ? ir(idx, build - 1) : idx > 0 && ir(idx - 1, totalBuilds(idx - 1)));
 const definirBuild = (b) => ir(idx, b);
@@ -577,7 +590,7 @@ function montarWaffle() {
 
   function tamanho() {
     const w = canvas.parentElement.clientWidth - 36;
-    const hDisp = innerHeight - 400;
+    const hDisp = Math.max(innerHeight - 330, 240);
     cel = Math.max(4, Math.floor(Math.min(w / COLS, hDisp / ROWS)));
     gap = cel >= 9 ? 2 : 1;
     const dpr = devicePixelRatio || 1;
@@ -661,7 +674,8 @@ function montarWaffle() {
   canvas.addEventListener("mousemove", (e) => {
     if (!pol) return;
     const r = canvas.getBoundingClientRect();
-    const c = Math.floor((e.clientX - r.left) / cel), l = Math.floor((e.clientY - r.top) / cel);
+    const esc = r.width / (COLS * cel);
+    const c = Math.floor((e.clientX - r.left) / esc / cel), l = Math.floor((e.clientY - r.top) / esc / cel);
     const i = l * COLS + c;
     if (c < 0 || c >= COLS || i < 0 || i >= Math.floor(prog)) return esconderTip();
     const p = pol.compras[i], k = pol.cat[i];
@@ -768,93 +782,45 @@ ganchos["s-formas"] = (b) => {
 
 /* ================================================================ 12 · Quanta */
 let gQuanta;
-const qEstado = { forma: "extracao", banco: "unico", async: new Set(), msg: null, req: 0 };
+const qEstado = { req: 0 };
+// Três etapas, sempre na forma "Só Notificações separado".
+const ETAPAS_QUANTA = [
+  { filas: false, banco: "unico", msg: ["Tudo síncrono e um banco só: <b>1 quantum</b>. Se Notificações cair, a compra sente.", "ruim"] },
+  { filas: true, banco: "unico", msg: ["Com as filas, mas o <b>banco ainda é compartilhado</b>: continua 1 quantum.", "ruim"] },
+  { filas: true, banco: "servico", msg: ["Filas <b>e</b> banco próprio: Notificações vira um <b>quantum separado</b>. Uma falha no aviso não para a compra.", "bom"] },
+];
 function montarQuanta() {
-  gQuanta = criarGrafo($("#grafo-quanta"), { interativo: true });
-  for (const id in gQuanta.ars) {
-    gQuanta.ars[id].g.addEventListener("click", () => {
-      qEstado.async.has(id) ? qEstado.async.delete(id) : qEstado.async.add(id);
-      qEstado.msg = null;
-      atualizarQuanta();
-    });
-  }
-  const formas = $("#q-forma");
-  DADOS.parte2.formas.forEach((f) => {
-    const b = el("button", { "data-f": f.id }, f.nome.replace("Só Notificações separado", "Extração"), formas);
-    b.addEventListener("click", () => { qEstado.forma = f.id; qEstado.msg = null; atualizarQuanta(); });
-  });
-  [["unico", "Compartilhado"], ["servico", "Um por serviço"]].forEach(([k, n]) => {
-    const b = el("button", { "data-b": k }, n, $("#q-banco"));
-    b.addEventListener("click", () => { qEstado.banco = k; qEstado.msg = null; atualizarQuanta(); });
-  });
-  const presets = [
-    ["Tudo síncrono", () => new Set()],
-    ["As 4 entradas de Notificações por fila", () => new Set(ENTRADAS())],
-    ["Isolar Clientes (2 arestas)", () => new Set(["Portal>Clientes", "Checkout>Clientes"])],
-    ["Tudo assíncrono", () => new Set(DADOS.parte2.arestas)],
-  ];
-  presets.forEach(([n, fn]) => {
-    const b = el("button", {}, n, $("#q-presets"));
-    b.addEventListener("click", () => { qEstado.async = fn(); qEstado.msg = null; atualizarQuanta(); });
-  });
+  gQuanta = criarGrafo($("#grafo-quanta"));
+  const f = DADOS.parte2.formas.find((x) => x.id === "extracao");
+  gQuanta.forma(f.artefato_de, { rotulo: rotuloForma("extracao"), dur: 0 });
 }
-function mensagemQuanta(r) {
-  const { banco, async: as, forma } = qEstado;
-  if (qEstado.msg) return qEstado.msg;
-  if (r.quanta === 1 && as.size === 0) return ["Tudo síncrono: o grafo segue conectado, e há <b>um único quantum</b> em qualquer forma.", "ruim"];
-  if (r.quanta === 1 && banco === "unico") return ["As filas não bastam: <b>o banco compartilhado ainda liga todos os componentes</b>.", "ruim"];
-  if (r.quanta === 1) {
-    const faltam = ENTRADAS().filter((e) => !as.has(e));
-    if (forma !== "monolito" && faltam.length && faltam.length < 4) return [`Ainda há entrada síncrona em Notificações (<b>${faltam.map(seta).join(", ")}</b>), e ela basta para manter tudo num quantum.`, "ruim"];
-    if (forma === "monolito") return ["No monólito, tudo vive no mesmo artefato: <b>sempre um quantum</b>.", "ruim"];
-    return ["Ainda existe um caminho síncrono ligando todos os componentes.", "ruim"];
-  }
-  if (forma === "micro" && r.quanta === 2 && r.grupos[1].join() === "Clientes")
-    return ["Nos microsserviços, o menor corte tem <b>duas arestas</b>: Portal → Clientes e Checkout → Clientes isolam Clientes. É uma possibilidade do grafo, <b>não uma recomendação</b>.", "bom"];
-  const menores = r.grupos.slice(1).map((g) => g.map((c) => NOME[c]).join(" + "));
-  if (r.grupos.some((g) => g.length === 1 && g[0] === "Notificacoes"))
-    return [`<b>${r.quanta} quanta.</b> Notificações executa sozinha: falhas no envio dos avisos não param a compra.`, "bom"];
-  return [`<b>${r.quanta} quanta.</b> Executam separados: ${menores.slice(0, 4).join("; ")}${menores.length > 4 ? "…" : ""}.`, "bom"];
-}
-async function atualizarQuanta() {
-  const { forma, banco, async: as } = qEstado;
-  $$("#q-forma button").forEach((b) => b.classList.toggle("on", b.dataset.f === forma));
-  $$("#q-banco button").forEach((b) => b.classList.toggle("on", b.dataset.b === banco));
-  const f = DADOS.parte2.formas.find((x) => x.id === forma);
-  gQuanta.forma(f.artefato_de, { rotulo: rotuloForma(forma), dur: 700 });
+async function atualizarQuanta(e) {
+  const as = new Set(e.filas ? ENTRADAS() : []);
   gQuanta.async(as);
+  $$("#q-check li").forEach((li) => li.classList.toggle("on", li.dataset.c === "filas" ? e.filas : e.banco === "servico"));
+  const m = $("#q-msg");
+  m.innerHTML = e.msg[0]; m.className = "mensagem " + e.msg[1];
+  const flags = (e.filas ? ` --assincronas "${[...as].join(",")}"` : "") + (e.banco === "servico" ? " --banco-por-servico" : "");
   const req = ++qEstado.req;
-  const q = new URLSearchParams({ forma, banco, assincronas: [...as].join(",") });
+  const q = new URLSearchParams({ forma: "extracao", banco: e.banco, assincronas: [...as].join(",") });
   let r;
-  try { r = await (await fetch("/api/quanta?" + q)).json(); } catch (e) { console.error(e); return; }
+  try { r = await (await fetch("/api/quanta?" + q)).json(); } catch (erro) { console.error(erro); return; }
   if (req !== qEstado.req || r.erro) return;
-  gQuanta.quanta(r.grupos, banco);
+  gQuanta.quanta(r.grupos, e.banco);
   const num = $("#q-num");
   if (num.textContent !== String(r.quanta)) {
     num.textContent = r.quanta;
     num.animate([{ transform: "scale(1.35)", color: "var(--accent-2)" }, { transform: "scale(1)" }], { duration: 500, easing: "cubic-bezier(.2,.8,.2,1)" });
   }
   $("#q-u").textContent = r.quanta === 1 ? "quantum" : "quanta";
-  const nomeCli = { monolito: "Monolito", extracao: "So Notificacoes", dominio: "Por dominio", micro: "Microsservicos" }[forma];
-  const flags = (as.size ? ` --assincronas "${[...as].join(",")}"` : "") + (banco === "servico" ? " --banco-por-servico" : "");
-  $("#q-cli").innerHTML = `<span class="pr">$</span> python meu_quantum.py${flags.replace(/</g, "&lt;")}<br><span class="saida">${nomeCli} … Q filas = <b>${r.quanta}</b></span>`;
-  const [txt, tom] = mensagemQuanta(r);
-  const m = $("#q-msg");
-  m.innerHTML = txt; m.className = "mensagem " + tom;
-  const pill = banco === "unico" ? `<span class="banco"><i style="background:var(--text-2)"></i>Banco compartilhado: liga todos</span>` : `<span class="banco"><i style="background:var(--accent-2)"></i>Um banco por serviço</span>`;
-  $("#q-leg").innerHTML = pill + r.grupos.map((g, i) => `<span><i style="background:var(${i < SERIES.length ? SERIES[i] : "--ref"})"></i>Q${i + 1} · ${g.length > 3 ? g.length + " componentes" : g.map((c) => NOME[c]).join(", ")}</span>`).join("");
+  const cmd = `python meu_quantum.py${flags || " --banco-unico"}`.replace(/</g, "&lt;");
+  const cli = $("#q-cli");
+  cli.dataset.tip = `<b>Comando completo</b><div class="mono">${cmd}</div>`;
+  cli.innerHTML = `<div class="linha-cmd"><span class="pr">$</span> ${cmd}</div><span class="saida">So Notificacoes … Q filas = <b>${r.quanta}</b></span>`;
+  $("#q-leg").innerHTML = r.grupos.map((g, i) => `<span><i style="background:var(${SERIES[i]})"></i>${g.length > 3 ? g.length + " componentes" : g.map((c) => NOME[c]).join(", ")}</span>`).join("")
+    + `<span class="banco"><i style="background:${e.banco === "unico" ? "var(--text-2)" : "var(--accent-2)"}"></i>${e.banco === "unico" ? "1 banco para todos" : "1 banco por serviço"}</span>`;
 }
-const ETAPAS_QUANTA = [
-  { forma: "extracao", banco: "unico", async: () => [], msg: null },
-  { forma: "extracao", banco: "unico", async: () => ENTRADAS(), msg: null },
-  { forma: "extracao", banco: "servico", async: () => ENTRADAS(), msg: null },
-];
-ganchos["s-quanta"] = (b) => {
-  const e = ETAPAS_QUANTA[b];
-  Object.assign(qEstado, { forma: e.forma, banco: e.banco, async: new Set(e.async()), msg: e.msg });
-  atualizarQuanta();
-};
-
+ganchos["s-quanta"] = (b) => atualizarQuanta(ETAPAS_QUANTA[b]);
 
 /* ================================================================ Orador e cronômetro */
 let NOMES_ORADOR = {};
