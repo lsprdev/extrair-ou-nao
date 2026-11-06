@@ -230,7 +230,11 @@ def montar_dados() -> bytes:
     dados = {
         "projeto": {
             "titulo": "Extrair ou não extrair — Orion",
-            "alunos": ["Gabriel Alves", "Gabriel Lopes Pereira"],
+            # Na ordem em que apresentam.
+            "alunos": [
+                {"nome": "Gabriel Lopes Pereira", "id": "lopes", "partes": "Cenário, Partes 1 e 2"},
+                {"nome": "Gabriel Alves", "id": "alves", "partes": "Partes 3 e 4"},
+            ],
         },
         "parte1": dados_parte1(),
         "parte2": dados_parte2(),

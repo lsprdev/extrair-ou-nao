@@ -36,4 +36,4 @@ PORTA=9000 docker compose up -d     # outra porta
 python apresentacao/server.py       # sem Docker
 ```
 
-Atalhos: `→`/`espaço` avançam, `←` volta, `F` abre tela cheia, `T` troca o tema. Cada slide guarda a etapa na URL (`#6.2`).
+Atalhos: `→`/`espaço` avançam, `←` volta, `F` abre tela cheia, `T` troca o tema e `R` zera o cronômetro de quem está falando. Cada slide guarda a etapa na URL (`#6.2`).

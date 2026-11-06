@@ -313,6 +313,7 @@ function montarMoldura() {
     else if (e.key === "End") ir(slides.length - 1, totalBuilds(slides.length - 1));
     else if (e.key.toLowerCase() === "f") telaCheia();
     else if (e.key.toLowerCase() === "t") alternarTema();
+    else if (e.key.toLowerCase() === "r") zerarCronometro();
   });
   let x0 = null;
   document.addEventListener("touchstart", (e) => (x0 = e.touches[0].clientX), { passive: true });
@@ -334,6 +335,7 @@ function atualizarMoldura() {
   const total = slides.reduce((a, _, i) => a + totalBuilds(i) + 1, 0);
   const feito = slides.slice(0, idx).reduce((a, _, i) => a + totalBuilds(i) + 1, 0) + build + 1;
   $("#barra-progresso").style.width = (100 * feito) / total + "%";
+  atualizarOrador();
   const ultimo = idx === slides.length - 1 && build === n;
   $("#btn-prox-txt").textContent = ultimo ? "Fim" : build < n ? "Próxima etapa" : "Próximo slide";
 }
@@ -352,9 +354,10 @@ function telaCheia() {
 function montarCapa() {
   const { alunos } = DADOS.projeto;
   const iniciais = (n) => n.split(" ").filter((p) => p.length > 2).slice(0, 2).map((p) => p[0]).join("");
-  for (const a of alunos) el("div", { class: "aluno cartao" }, `<span class="avatar">${iniciais(a)}</span><span>${a}</span>`, $("#alunos"));
-  $("#creditos").innerHTML = alunos.map((a) => `<span class="aluno cartao" style="padding:6px 14px 6px 6px"><span class="avatar" style="width:28px;height:28px;font-size:11px">${iniciais(a)}</span><span>${a}</span></span>`).join("")
-    + `<span>Dados gerados por <code>meu_ensaio.py</code> e <code>meu_quantum.py</code> · base de Eduardo da Silva (<code>07-remoto</code>)</span>`;
+  const cartao = (a) => `<div class="aluno cartao"><span class="avatar">${iniciais(a.nome)}</span><span class="aluno-txt"><span>${a.nome}</span><small>${a.partes}</small></span></div>`;
+  $("#alunos").innerHTML = alunos.map(cartao).join("");
+  $("#creditos").innerHTML = alunos.map(cartao).join("");
+  NOMES_ORADOR = Object.fromEntries(alunos.map((a) => [a.id, a.nome]));
 
   const svg = $("#capa-grafo");
   svg.setAttribute("viewBox", "-200 -80 1360 760");
@@ -394,18 +397,18 @@ ganchos["s-cenario"] = (b, entrou) => {
 function montarHipoteses() {
   const h = DADOS.parte1.hipoteses, q = DADOS.parte2.hipoteses;
   const cards = [
-    { rot: "Mediana da rede", v: h.novo.mediana_ms, suf: " ms", antes: `${h.base.mediana_ms} ms`, dir: "sobe", por: "Comunicação rápida, mas com mais sobrecarga que a base." },
-    { rot: "P99 da rede", v: h.novo.p99_ms, suf: " ms", antes: `${h.base.p99_ms} ms`, dir: "sobe", por: "Cauda longa por contenção." },
-    { rot: "Falha sorteada", v: h.novo.falha * 100, suf: "%", antes: pct(h.base.falha, 0), dir: "desce", por: "Menos perdas que na campanha original." },
-    { rot: "Timeout por chamada", v: h.timeout_s, suf: " s", antes: "mantido", dir: "igual", por: `${pct(h.novo.perda_na_volta, 0)} das falhas sorteadas perdem a resposta na volta.` },
-    { rot: "Amostra", v: h.compras, suf: "", unid: "compras", antes: "mantida", dir: "igual", por: `Semente ${h.semente}, e uma varredura das sementes 1 a 10.` },
-    { rot: "Disponibilidade", v: q.disponibilidade * 100, dec: 1, suf: "%", unid: "por artefato", antes: "mantida", dir: "igual", por: `Mês de 30 dias = ${fmt(q.minutos_mes)} minutos (Aula 17).` },
+    { rot: "Mediana da rede", v: h.novo.mediana_ms, suf: " ms", antes: `${h.base.mediana_ms} ms`, dir: "sobe", org: "inv", por: "Comunicação rápida, mas com mais sobrecarga que a base." },
+    { rot: "P99 da rede", v: h.novo.p99_ms, suf: " ms", antes: `${h.base.p99_ms} ms`, dir: "sobe", org: "inv", por: "Cauda longa por contenção." },
+    { rot: "Falha sorteada", v: h.novo.falha * 100, suf: "%", antes: pct(h.base.falha, 0), dir: "desce", org: "inv", por: "Menos perdas que na campanha original. Na Parte 2, 1% por chamada." },
+    { rot: "Timeout por chamada", v: h.timeout_s, suf: " s", antes: "mantido", dir: "igual", org: "prof", por: `${pct(h.novo.perda_na_volta, 0)} das falhas sorteadas perdem a resposta na volta.` },
+    { rot: "Amostra", v: h.compras, suf: "", unid: "compras", antes: "mantida", dir: "igual", org: "prof", por: `Semente ${h.semente}, e uma varredura das sementes 1 a 10.` },
+    { rot: "Disponibilidade", v: q.disponibilidade * 100, dec: 1, suf: "%", unid: "por artefato", antes: "mantida", dir: "igual", org: "aula", por: `Mês de 30 dias = ${fmt(q.minutos_mes)} minutos.` },
   ];
   const grade = $("#hip-grade");
   cards.forEach((c, i) => {
     const seta = { sobe: "↑ maior", desce: "↓ menor", igual: "= igual" }[c.dir];
     const d = el("div", { class: "cartao hip", "data-build": "0", style: `transition-delay:${i * 90}ms` }, `
-      <div class="rot">${c.rot}</div>
+      <div class="rot">${c.rot}<span class="fonte ${c.org}">${{ inv: "inventado por nós", prof: "padrão do professor", aula: "hipótese da Aula 17" }[c.org]}</span></div>
       <div class="valor num"><span class="cv" data-alvo="${c.v}" data-dec="${c.dec || 0}" data-suf="${c.suf}">0</span>${c.unid ? `<small>${c.unid}</small>` : ""}</div>
       <div class="antes"><span class="seta-mudou ${c.dir}">${seta}</span>${c.dir === "igual" ? `<span>${c.antes}</span>` : `base: <s>${c.antes}</s>`}</div>
       <div class="por">${c.por}</div>`, grade);
@@ -505,6 +508,7 @@ function veredito(id, texto, cor) {
 }
 async function tocarCena(cena) {
   const id = ++seq.id;
+  seq.cena = cena;
   seq.camada.innerHTML = "";
   $$(".cena-tab").forEach((b, i) => b.classList.toggle("on", i === cena));
   setCobrancas(0);
@@ -531,7 +535,10 @@ async function tocarCena(cena) {
   if (!(await mensagem(id, { de: X.pag, para: X.checkout, y: 375, rotulo: "aprovado", classe: cena === 1 ? "volta" : "reuso", dur: 700 }))) return;
   veredito(id, cena === 1 ? "Pedido confirmado, mas o cliente pagou duas vezes (R$ 600)." : "Pedido confirmado e cobrado uma vez só (R$ 300).", cena === 1 ? "var(--critical)" : "var(--good)");
 }
-ganchos["s-problema"] = (b) => tocarCena(b);
+ganchos["s-problema"] = (b, entrou) => {
+  if (b <= 2) return tocarCena(b);
+  if (entrou || seq.cena !== 2) tocarCena(2);
+};
 
 /* ================================================================ 6 · Waffle */
 const CATS = {
@@ -550,7 +557,7 @@ function montarWaffle() {
   pols.forEach((p, i) => {
     const [n, s] = NOME_POL[p.id];
     const b = el("button", { class: "pol" }, `<b>${n}</b><span class="${p.com_chave ? "chave-tag" : p.tentativas > 1 ? "sem-tag" : ""}">${p.com_chave ? "🔑 " : ""}${s}</span>`, $("#politicas"));
-    b.addEventListener("click", (e) => { e.currentTarget.blur(); definirBuild(i); });
+    b.addEventListener("click", (e) => { e.currentTarget.blur(); waffle.selecionar(i); });
   });
   $("#waffle-leg").innerHTML = Object.entries(CATS).map(([k, c]) =>
     `<span class="item"><span class="cor" style="background:var(${c.cor})"></span>${c.ic ? `<b class="icone">${c.ic}</b>` : ""}${c.nome}</span>`).join("");
@@ -664,7 +671,9 @@ function montarWaffle() {
   addEventListener("resize", () => pol && slides[idx].id === "s-ensaio" && (tamanho(), desenhar(performance.now() + 1e5)));
   waffle = { selecionar, redesenhar: () => pol && desenhar(performance.now() + 1e5) };
 }
-ganchos["s-ensaio"] = (b) => waffle.selecionar(b);
+// Etapas: 1 tentativa, 2 sem chave, 3 sem chave, 3 com chave (2 com chave fica na aba).
+const ETAPAS_ENSAIO = [0, 1, 2, 4];
+ganchos["s-ensaio"] = (b) => waffle.selecionar(ETAPAS_ENSAIO[b]);
 
 /* ================================================================ 7 · Comparação */
 function montarComparacao() {
@@ -694,80 +703,23 @@ ganchos["s-comparacao"] = (b, entrou) => {
       contar($(".val", l), +$(".val", l).dataset.alvo, { dur: 1000 });
     }, 200 + (i % 5) * 110)));
   }
+  const foco = b === 1 ? ["2s", "3s"] : b >= 2 ? ["3c"] : [];
   linhas.forEach((l) => {
-    const foco = ["2s", "3s"].includes(l.dataset.id);
-    l.classList.toggle("destaque", b >= 1 && foco);
-    l.classList.toggle("esmaece", b >= 1 && !foco);
+    l.classList.toggle("destaque", foco.includes(l.dataset.id));
+    l.classList.toggle("esmaece", foco.length > 0 && !foco.includes(l.dataset.id));
   });
 };
-
-/* ================================================================ 8 · Varredura */
-const dumbs = {};
-function montarDumbbell(svg, chave, { dominio, ticks, fmtV, unid }) {
-  const v = DADOS.parte1.varredura;
-  const W = 560, L = 84, R = 20, T = 6, RH = 23, H = T + v.length * RH + 30;
-  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-  const x = (val) => L + ((val - dominio[0]) / (dominio[1] - dominio[0])) * (W - L - R);
-  const grid = svgEl("g", { class: "grid" }, svg), eixo = svgEl("g", { class: "eixo" }, svg);
-  for (const t of ticks) {
-    svgEl("line", { x1: x(t), x2: x(t), y1: T, y2: H - 26 }, grid);
-    svgEl("text", { x: x(t), y: H - 8, "text-anchor": "middle" }, eixo).textContent = fmtV(t);
-  }
-  const linhas = v.map((s, i) => {
-    const y = T + i * RH + RH / 2;
-    const b = s[chave + "_base"], n = s[chave + "_novo"];
-    const g = svgEl("g", {}, svg);
-    g.dataset.tip = `<b>Semente ${s.semente}</b><div>Base: ${fmtV(b)}${unid}</div><div>Nosso: ${fmtV(n)}${unid}</div>`;
-    svgEl("rect", { class: "hit", x: 0, y: y - RH / 2, width: W, height: RH }, g);
-    svgEl("text", { class: "rotulo", x: L - 14, y }, g).textContent = `Semente ${s.semente}`;
-    const liga = svgEl("line", { class: "liga", x1: x(b), x2: x(b), y1: y, y2: y }, g);
-    const pb = svgEl("circle", { class: "pb", cx: x(b), cy: y, r: 6 }, g);
-    const pn = svgEl("circle", { class: "pn", cx: x(b), cy: y, r: 7, opacity: 0 }, g);
-    return { liga, pb, pn, xb: x(b), xn: x(n) };
-  });
-  dumbs[svg.id] = {
-    reset() { linhas.forEach((l) => { l.pn.setAttribute("cx", l.xb); l.pn.setAttribute("opacity", 0); l.liga.setAttribute("x2", l.xb); l.pb.setAttribute("opacity", 0); }); },
-    tocar() {
-      linhas.forEach((l, i) => {
-        setTimeout(() => {
-          l.pb.setAttribute("opacity", 1);
-          l.pb.animate([{ r: 0 }, { r: 6 }], { duration: 300 });
-          setTimeout(() => {
-            l.pn.setAttribute("opacity", 1);
-            tween(900, (t) => { const xx = l.xb + (l.xn - l.xb) * t; l.pn.setAttribute("cx", xx); l.liga.setAttribute("x2", xx); }, easeInOut);
-          }, 250);
-        }, i * 70);
-      });
-    },
-    final() { linhas.forEach((l) => { l.pb.setAttribute("opacity", 1); l.pn.setAttribute("opacity", 1); l.pn.setAttribute("cx", l.xn); l.liga.setAttribute("x2", l.xn); }); },
-  };
-}
-const varEstado = { p95: false, dup: false };
-ganchos["s-varredura"] = (b, entrou) => {
-  if (entrou) {
-    dumbs["dumb-p95"].reset(); dumbs["dumb-dup"].reset(); varEstado.p95 = varEstado.dup = false;
-    if (b >= 1) { dumbs["dumb-p95"].final(); varEstado.p95 = true; }
-    if (b >= 2) { dumbs["dumb-dup"].final(); varEstado.dup = true; }
-  }
-  if (!varEstado.p95) { varEstado.p95 = true; setTimeout(() => dumbs["dumb-p95"].tocar(), 300); }
-  if (b >= 1 && !varEstado.dup) { varEstado.dup = true; setTimeout(() => dumbs["dumb-dup"].tocar(), 300); }
-};
-
-/* ================================================================ 9 · Decisão */
-function montarDecisao() {
+function montarResultado() {
   const p = Object.fromEntries(DADOS.parte1.novo.map((x) => [x.id, x]));
-  const itens = [
-    { v: p["3c"].duplicadas, suf: "", r: "compras com cobrança duplicada", c: `sem chave, 3 tentativas: ${p["3s"].duplicadas}`, cor: "var(--good)" },
-    { v: p["3c"].incertos, suf: "", r: "resultado incerto", c: `com 1 tentativa: ${p["1s"].incertos}`, cor: "var(--text)" },
-    { v: p["3c"].pior_s, suf: " s", r: "pior tempo de espera", c: `com 1 tentativa: ${fmt(p["1s"].pior_s)} s`, cor: "var(--serious)" },
-  ];
-  $("#hero-decisao").innerHTML = itens.map((it, i) =>
-    `<div class="cartao" data-build="0" style="transition-delay:${i * 120}ms"><div class="v num" style="color:${it.cor}" data-alvo="${it.v}" data-suf="${it.suf}">0</div><div class="r">${it.r}</div><div class="compara">${it.c}</div></div>`).join("");
+  const v = DADOS.parte1.varredura.map((x) => x.dup_novo);
+  $("#callout-previsao").textContent = `Previsão confirmada: de 2 para 3 tentativas sem chave, as duplicações sobem de ${p["2s"].duplicadas} para ${p["3s"].duplicadas} e os incertos caem de ${p["2s"].incertos} para ${p["3s"].incertos}.`;
+  $("#decisao-faixa").innerHTML = `
+    <div class="df-esq"><span class="rot">Escolha</span><b>Até 3 tentativas com a mesma chave</b></div>
+    <div class="df-num"><b style="color:var(--good)">${p["3c"].duplicadas}</b><span>duplicadas</span></div>
+    <div class="df-num"><b>${p["3c"].incertos}</b><span>incerto</span></div>
+    <div class="df-num"><b style="color:var(--serious)">${fmt(p["3c"].pior_s)} s</b><span>pior caso</span></div>
+    <div class="df-custo">Custa espera e o registro das chaves, e o incerto ainda pede conciliação. Em 10 sementes sem chave, as duplicações ficam entre ${pct(Math.min(...v))} e ${pct(Math.max(...v))}: mudar as hipóteses não elimina o problema.</div>`;
 }
-ganchos["s-decisao1"] = (b, entrou) => {
-  if (!entrou) return;
-  $$("#hero-decisao .v").forEach((v, i) => { v.dataset.v = i === 0 ? 21 : i === 1 ? 31 : 0; setTimeout(() => contar(v, +v.dataset.alvo, { dur: 1300, suf: v.dataset.suf }), 200 + i * 120); });
-};
 
 /* ================================================================ 10 · Formas */
 let gFormas;
@@ -792,6 +744,13 @@ function montarFormas() {
     const b = el("button", { class: "forma-tab" }, `${f.nome}<small>${SUB_FORMA[f.id]}</small>`, $("#formas-tabs"));
     b.addEventListener("click", (e) => { e.currentTarget.blur(); definirBuild(i); });
   });
+  // Contagem manual do relatório (artefatos, remotas, diretas do Checkout, quanta síncronos),
+  // comparada aqui com o que o meu_quantum.py calcula agora.
+  const MANUAL = { monolito: [1, 0, 0, 1], extracao: [2, 4, 0, 1], dominio: [8, 15, 4, 1], micro: [10, 17, 5, 1] };
+  const difere = DADOS.parte2.formas.filter((f) => MANUAL[f.id].join() !== [f.artefatos, f.remotas, f.diretas, f.quanta_sincrono].join());
+  $("#conferido").innerHTML = difere.length
+    ? `<span class="x">✗</span> Contagem manual difere do código em: ${difere.map((f) => f.nome).join(", ")}`
+    : `<span class="ok">✓</span> A contagem manual do relatório bate com o <code>meu_quantum.py</code> nas 4 formas · 84 testes passando`;
   $("#stats-forma").innerHTML = [
     ["artefatos", "Artefatos"], ["remotas", "Dependências remotas"], ["diretas", "Remotas diretas do Checkout"], ["quanta_sincrono", "Quanta (tudo síncrono)"],
   ].map(([k, r]) => `<div class="metrica" id="f-${k}"><div class="rot">${r}</div><div class="v num"><span>0</span></div></div>`).join("");
@@ -805,33 +764,6 @@ ganchos["s-formas"] = (b) => {
   const ex = $("#explica-forma");
   ex.style.opacity = 0;
   setTimeout(() => { ex.innerHTML = EXPLICA[f.id]; ex.style.opacity = 1; }, 200);
-};
-
-/* ================================================================ 11 · Custos */
-function montarCustos() {
-  const fs = DADOS.parte2.formas;
-  const max = Math.max(...fs.map((f) => f.minutos)) * 1.4;
-  $("#custo-tab").innerHTML = `<thead><tr><th>Forma</th><th class="n">Artefatos tocados <span style=\"text-transform:none\">(k)</span></th><th class="n">Chamadas diretas <span style=\"text-transform:none\">(n)</span></th><th class="n">Chance de falha</th><th class="n">Disponibilidade</th><th>Minutos fora por mês</th></tr></thead><tbody>` +
-    fs.map((f, i) => `<tr data-build="0" style="transition-delay:${i * 90}ms" class="${f.minutos === fs[0].minutos ? "melhor" : ""}"
-      data-tip="<b>${f.nome}</b><div>k = ${f.tocados} → A = 0,999^${f.tocados} = ${pct(f.disponibilidade)}</div><div>n = ${f.diretas} → P = 1 − 0,99^${f.diretas} = ${pct(f.p_falha)}</div>">
-      <td>${f.nome}</td><td class="n num">${f.tocados}</td><td class="n num">${f.diretas}</td><td class="n num">${pct(f.p_falha)}</td><td class="n num">${pct(f.disponibilidade)}</td>
-      <td><span class="trilho"><span class="b" data-w="${(100 * f.minutos) / max}"></span><span class="lbl num" data-alvo="${f.minutos}">0</span></span></td></tr>`).join("") + "</tbody>";
-}
-let custosTocados = false;
-ganchos["s-custos"] = (b, entrou) => {
-  const barras = $$("#custo-tab .b"), lbls = $$("#custo-tab .lbl");
-  if (entrou || b < 1) {
-    custosTocados = false;
-    barras.forEach((x) => (x.style.width = 0));
-    lbls.forEach((l) => { l._para?.(); l.dataset.v = 0; l.textContent = ""; });
-  }
-  if (b >= 1 && !custosTocados) {
-    custosTocados = true;
-    barras.forEach((x, i) => setTimeout(() => {
-      x.style.width = x.dataset.w + "%";
-      contar(lbls[i], +lbls[i].dataset.alvo, { dur: 1100, dec: 2 });
-    }, 250 + i * 140));
-  }
 };
 
 /* ================================================================ 12 · Quanta */
@@ -877,6 +809,8 @@ function mensagemQuanta(r) {
     if (forma === "monolito") return ["No monólito, tudo vive no mesmo artefato: <b>sempre um quantum</b>.", "ruim"];
     return ["Ainda existe um caminho síncrono ligando todos os componentes.", "ruim"];
   }
+  if (forma === "micro" && r.quanta === 2 && r.grupos[1].join() === "Clientes")
+    return ["Nos microsserviços, o menor corte tem <b>duas arestas</b>: Portal → Clientes e Checkout → Clientes isolam Clientes. É uma possibilidade do grafo, <b>não uma recomendação</b>.", "bom"];
   const menores = r.grupos.slice(1).map((g) => g.map((c) => NOME[c]).join(" + "));
   if (r.grupos.some((g) => g.length === 1 && g[0] === "Notificacoes"))
     return [`<b>${r.quanta} quanta.</b> Notificações executa sozinha: falhas no envio dos avisos não param a compra.`, "bom"];
@@ -901,6 +835,9 @@ async function atualizarQuanta() {
     num.animate([{ transform: "scale(1.35)", color: "var(--accent-2)" }, { transform: "scale(1)" }], { duration: 500, easing: "cubic-bezier(.2,.8,.2,1)" });
   }
   $("#q-u").textContent = r.quanta === 1 ? "quantum" : "quanta";
+  const nomeCli = { monolito: "Monolito", extracao: "So Notificacoes", dominio: "Por dominio", micro: "Microsservicos" }[forma];
+  const flags = (as.size ? ` --assincronas "${[...as].join(",")}"` : "") + (banco === "servico" ? " --banco-por-servico" : "");
+  $("#q-cli").innerHTML = `<span class="pr">$</span> python meu_quantum.py${flags.replace(/</g, "&lt;")}<br><span class="saida">${nomeCli} … Q filas = <b>${r.quanta}</b></span>`;
   const [txt, tom] = mensagemQuanta(r);
   const m = $("#q-msg");
   m.innerHTML = txt; m.className = "mensagem " + tom;
@@ -911,9 +848,6 @@ const ETAPAS_QUANTA = [
   { forma: "extracao", banco: "unico", async: () => [], msg: null },
   { forma: "extracao", banco: "unico", async: () => ENTRADAS(), msg: null },
   { forma: "extracao", banco: "servico", async: () => ENTRADAS(), msg: null },
-  { forma: "extracao", banco: "servico", async: () => ENTRADAS().filter((e) => e !== "Integracoes>Notificacoes"), msg: null },
-  { forma: "micro", banco: "servico", async: () => ["Portal>Clientes", "Checkout>Clientes"],
-    msg: ["Nos microsserviços, o menor corte tem <b>duas arestas</b>: Portal → Clientes e Checkout → Clientes isolam Clientes. Nenhuma aresta sozinha basta. É uma possibilidade do grafo, <b>não uma recomendação</b>.", "bom"] },
 ];
 ganchos["s-quanta"] = (b) => {
   const e = ETAPAS_QUANTA[b];
@@ -921,17 +855,263 @@ ganchos["s-quanta"] = (b) => {
   atualizarQuanta();
 };
 
-/* ================================================================ 13 · Matriz */
-function montarMatriz() {
-  const cols = [["⇄", "Síncrono", "banco único"], ["≡", "Filas", "banco único"], ["⇄", "Síncrono", "bancos separados"], ["≡", "Filas", "bancos separados"]];
-  $("#matriz").innerHTML = `<thead><tr><th></th>${cols.map(([i, a, b]) => `<th><span class="ic">${i}</span>${a}<br>${b}</th>`).join("")}</tr></thead><tbody>` +
-    DADOS.parte2.matriz_quanta.map((f, r) => `<tr><th class="linha">${f.nome}</th>${f.valores.map((v, c) =>
-      `<td class="num ${v > 1 ? "dois" : ""}" style="transition-delay:${(r * 4 + c) * 60}ms" data-tip="<b>${f.nome}</b><div>${cols[c][1]}, ${cols[c][2]}</div><div class='t'>${v} quant${v === 1 ? "um" : "a"}</div>">${v}</td>`).join("")}</tr>`).join("") + "</tbody>";
+
+/* ================================================================ Orador e cronômetro */
+let NOMES_ORADOR = {};
+const cron = {};
+function atualizarOrador() {
+  const quem = slides[idx].dataset.quem;
+  $("#orador").classList.toggle("on", !!quem);
+  if (!quem) return;
+  if (!cron[quem]) {
+    // Quem começa a falar inicia o próprio tempo e congela o de quem falou antes.
+    const agora = Date.now();
+    for (const k in cron) cron[k].fim ??= agora;
+    cron[quem] = { ini: agora, fim: null };
+  }
+  $("#orador-nome").textContent = NOMES_ORADOR[quem] || "";
+  tique();
 }
-ganchos["s-matriz"] = (b, entrou) => {
-  const tds = $$("#matriz td"), m = $("#matriz");
-  if (entrou) { tds.forEach((t) => t.classList.remove("on")); m.classList.remove("foco"); void m.offsetWidth; requestAnimationFrame(() => tds.forEach((t) => t.classList.add("on"))); }
-  m.classList.toggle("foco", b >= 1);
+function tique() {
+  const quem = slides[idx]?.dataset.quem;
+  if (!quem || !cron[quem]) return;
+  const ms = (cron[quem].fim ?? Date.now()) - cron[quem].ini;
+  const seg = Math.floor(ms / 1000);
+  const c = $("#cronometro");
+  c.textContent = `${Math.floor(seg / 60)}:${String(seg % 60).padStart(2, "0")}`;
+  c.className = "num " + (seg >= 420 ? "estourou" : seg >= 360 ? "aviso" : "");
+}
+function zerarCronometro() {
+  const quem = slides[idx].dataset.quem;
+  if (quem) { cron[quem] = { ini: Date.now(), fim: null }; tique(); }
+}
+
+/* ================================================================ Parte 3 · Três falhas */
+const FALHAS = [
+  { tit: "Cai na ida", sub: "O pedido nem chega ao servidor.", mini: "<code>PERDA_NA_IDA</code>", chave: "Nunca viu a chave: <b>processa</b> normalmente." },
+  { tit: "Cai durante o processamento", sub: "O servidor para no meio do trabalho.", mini: "Não simulado: a cobrança do Mini-Orion é atômica.", chave: "Parou no meio: <b>retoma</b> o trabalho." },
+  { tit: "A resposta se perde", sub: "A operação termina, a volta falha.", mini: "<code>PERDA_NA_VOLTA</code>", chave: "Já terminou: <b>devolve o resultado guardado</b>, sem cobrar de novo." },
+];
+const minis = [];
+function montarFalhas() {
+  const box = $("#falhas");
+  FALHAS.forEach((f, i) => {
+    const c = el("div", { class: "cartao falha", "data-build": String(i) }, `
+      <div class="falha-topo"><span class="n">${i + 1}</span><div><h3>${f.tit}</h3><p class="nota">${f.sub}</p></div></div>
+      <svg viewBox="0 0 320 128"></svg>
+      <div class="falha-mini"><span class="rot">No Mini-Orion</span>${f.mini}</div>
+      <div class="falha-chave"><span>🔑</span><span>${f.chave}</span></div>`, box);
+    minis.push(montarMini($("svg", c), i + 1));
+  });
+}
+function montarMini(svg, tipo) {
+  const XC = 46, XS = 274;
+  svgEl("text", { x: XC, y: 14, "text-anchor": "middle", class: "mini-ator" }, svg).textContent = "Cliente";
+  svgEl("text", { x: XS, y: 14, "text-anchor": "middle", class: "mini-ator" }, svg).textContent = "Servidor";
+  for (const x of [XC, XS]) svgEl("line", { x1: x, x2: x, y1: 24, y2: 124, class: "mini-vida" }, svg);
+  svgEl("rect", { x: XS - 8, y: 48, width: 16, height: 52, rx: 4, class: "mini-srv" }, svg);
+  const enche = svgEl("rect", { x: XS - 8, y: 48, width: 16, height: 0, rx: 4, fill: "var(--accent-2)" }, svg);
+  const ida = svgEl("line", { x1: XC, x2: XC, y1: 46, y2: 46, stroke: "var(--accent-2)", "stroke-width": 2.4 }, svg);
+  const volta = svgEl("line", { x1: XS, x2: XS, y1: 104, y2: 104, stroke: "var(--good)", "stroke-width": 2.4 }, svg);
+  const xis = svgEl("text", { class: "marca-x", "text-anchor": "middle", "dominant-baseline": "central", opacity: 0 }, svg);
+  xis.textContent = "✕";
+  const alvoX = tipo === 1 ? 160 : XS - 8;
+  const pos = tipo === 1 ? [160, 46] : tipo === 2 ? [XS, 74] : [160, 104];
+  xis.setAttribute("x", pos[0]); xis.setAttribute("y", pos[1]);
+  let token = 0;
+  const reset = () => {
+    ida.setAttribute("x2", XC); volta.setAttribute("x2", XS); volta.setAttribute("opacity", 0);
+    enche.setAttribute("height", 0); enche.setAttribute("fill", "var(--accent-2)"); xis.setAttribute("opacity", 0);
+  };
+  const mostrarX = () => { xis.setAttribute("opacity", 1); xis.animate([{ opacity: 0, transform: "scale(2)" }, { opacity: 1, transform: "scale(1)" }], { duration: 350 }); };
+  const anim = (dur, fn) => new Promise((r) => tween(dur, (t) => { fn(t); if (t >= 1) r(); }, easeInOut));
+  return {
+    async tocar() {
+      const id = ++token; reset();
+      xis.style.transformBox = "fill-box"; xis.style.transformOrigin = "center";
+      await anim(650, (t) => ida.setAttribute("x2", XC + (alvoX - XC) * t));
+      if (id !== token) return;
+      if (tipo === 1) return mostrarX();
+      const h = tipo === 2 ? 26 : 52;
+      await anim(500, (t) => enche.setAttribute("height", h * t));
+      if (id !== token) return;
+      if (tipo === 2) { enche.setAttribute("fill", "var(--critical)"); return mostrarX(); }
+      enche.setAttribute("fill", "var(--good)");
+      volta.setAttribute("opacity", 1);
+      await anim(550, (t) => volta.setAttribute("x2", XS + (160 - XS) * t));
+      if (id === token) mostrarX();
+    },
+    final() {
+      ++token; reset();
+      ida.setAttribute("x2", alvoX);
+      if (tipo >= 2) enche.setAttribute("height", tipo === 2 ? 26 : 52);
+      if (tipo === 2) enche.setAttribute("fill", "var(--critical)");
+      if (tipo === 3) { enche.setAttribute("fill", "var(--good)"); volta.setAttribute("opacity", 1); volta.setAttribute("x2", 160); }
+      xis.setAttribute("opacity", 1);
+    },
+  };
+}
+const falhasTocadas = new Set();
+ganchos["s-falhas"] = (b, entrou) => {
+  if (entrou) falhasTocadas.clear();
+  for (let i = 0; i <= Math.min(b, 2); i++) {
+    if (falhasTocadas.has(i)) continue;
+    falhasTocadas.add(i);
+    if (entrou && i < b) minis[i].final();
+    else setTimeout(() => minis[i].tocar(), 350);
+  }
+  $$("#falhas .falha").forEach((c, i) => c.classList.toggle("par", b >= 3 && i !== 1));
+};
+
+/* ================================================================ Parte 3 · Repetições em massa */
+function aleatorio(semente) {
+  return () => { semente = (semente + 0x6d2b79f5) | 0; let t = Math.imul(semente ^ (semente >>> 15), 1 | semente); t ^= t + Math.imul(t ^ (t >>> 7), 61 | t); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
+// Ilustração, não medição: 40 clientes falham juntos em t = 0, o timeout é 1 s
+// e o servidor atende no máximo 8 pedidos a cada 0,25 s.
+function simularCarga(jitter) {
+  const N = 40, CAP = 8, BIN = 0.25, rnd = aleatorio(11);
+  let pend = Array.from({ length: N }, () => ({ t: 1, k: 0 }));
+  if (jitter) pend.forEach((p) => (p.t = 1 + rnd() * 1));
+  const bins = [];
+  let recusas = 0, fim = 0;
+  for (let i = 0; pend.length && i < 60; i++) {
+    const t0 = i * BIN, t1 = t0 + BIN;
+    const aqui = pend.filter((p) => p.t >= t0 && p.t < t1);
+    pend = pend.filter((p) => !(p.t >= t0 && p.t < t1));
+    const ok = Math.min(CAP, aqui.length), no = aqui.length - ok;
+    bins.push({ t0, ok, no });
+    if (ok) fim = t1;
+    recusas += no;
+    aqui.slice(ok).forEach((p) => pend.push({ t: t0 + 1 + (jitter ? rnd() * 1 * 2 ** (p.k + 1) : 0), k: p.k + 1 }));
+  }
+  return { bins, recusas, fim, CAP, BIN };
+}
+const cargas = {};
+function montarCarga(svg, jitter) {
+  const sim = simularCarga(jitter);
+  const W = 520, H = 190, L = 34, B = 26, T = 8, TMAX = 6, YMAX = 40;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const x = (t) => L + (t / TMAX) * (W - L - 8), y = (v) => H - B - (v / YMAX) * (H - B - T);
+  for (const v of [0, 20, 40]) {
+    svgEl("line", { x1: L, x2: W - 8, y1: y(v), y2: y(v), class: "carga-grid" }, svg);
+    svgEl("text", { x: L - 6, y: y(v) + 4, "text-anchor": "end", class: "carga-eixo" }, svg).textContent = v;
+  }
+  for (let t = 0; t <= TMAX; t++) svgEl("text", { x: x(t), y: H - 8, "text-anchor": "middle", class: "carga-eixo" }, svg).textContent = t + " s";
+  const bw = x(sim.BIN) - x(0) - 2;
+  const barras = sim.bins.filter((b) => b.ok + b.no).map((b) => {
+    const g = svgEl("g", {}, svg);
+    g.dataset.tip = `<b>${fmt(b.t0, 2)}–${fmt(b.t0 + sim.BIN, 2)} s</b><div>${b.ok} atendidas · ${b.no} recusadas</div>`;
+    const ok = svgEl("rect", { x: x(b.t0) + 1, width: bw, y: y(0), height: 0, rx: 2, fill: "var(--s1)" }, g);
+    const no = svgEl("rect", { x: x(b.t0) + 1, width: bw, y: y(0), height: 0, rx: 2, fill: "var(--critical)" }, g);
+    return { b, ok, no };
+  });
+  svgEl("line", { x1: L, x2: W - 8, y1: y(sim.CAP), y2: y(sim.CAP), class: "carga-cap" }, svg);
+  svgEl("text", { x: W - 10, y: y(sim.CAP) - 6, "text-anchor": "end", class: "carga-cap-txt" }, svg).textContent = "capacidade";
+  const cabeca = svgEl("line", { x1: L, x2: L, y1: T, y2: H - B, class: "carga-cabeca", opacity: 0 }, svg);
+  const desenhar = (tAgora) => {
+    for (const { b, ok, no } of barras) {
+      const f = Math.max(0, Math.min(1, (tAgora - b.t0) / 0.3));
+      const hOk = (y(0) - y(b.ok)) * f, hNo = (y(0) - y(b.no)) * f;
+      ok.setAttribute("y", y(0) - hOk); ok.setAttribute("height", Math.max(0, hOk - (b.no ? 1 : 0)));
+      no.setAttribute("y", y(0) - hOk - hNo); no.setAttribute("height", Math.max(0, hNo - 1));
+    }
+    cabeca.setAttribute("x1", x(Math.min(tAgora, TMAX))); cabeca.setAttribute("x2", x(Math.min(tAgora, TMAX)));
+  };
+  return {
+    sim,
+    tocar() { cabeca.setAttribute("opacity", 1); tween(3200, (t) => { desenhar(t * TMAX); if (t >= 1) cabeca.setAttribute("opacity", 0); }, (k) => k); },
+    final() { desenhar(TMAX + 1); cabeca.setAttribute("opacity", 0); },
+    zerar() { desenhar(-1); },
+  };
+}
+function montarTempestade() {
+  const p = Object.fromEntries(DADOS.parte1.novo.map((x) => [x.id, x]));
+  $("#tempestade-lead").innerHTML = `O ensaio sorteia cada falha de forma independente e não modela carga, por isso repetir na hora funciona: os incertos caem de <b>${p["1s"].incertos}</b> (uma tentativa) para <b>${p["3c"].incertos}</b> (três com chave). Numa <b>falha comum</b>, a história é outra.`;
+  cargas.hora = montarCarga($("#carga-hora"), false);
+  cargas.jitter = montarCarga($("#carga-jitter"), true);
+  for (const [k, c] of Object.entries(cargas))
+    $(k === "hora" ? "#res-hora" : "#res-jitter").innerHTML = `Todos atendidos em <b>${fmt(c.sim.fim, 2)} s</b> · <b>${c.sim.recusas}</b> recusas`;
+}
+const cargaTocada = { hora: false, jitter: false };
+ganchos["s-tempestade"] = (b, entrou) => {
+  if (entrou) { cargaTocada.hora = cargaTocada.jitter = false; cargas.hora.zerar(); cargas.jitter.zerar(); }
+  const fila = [["hora", 0], ["jitter", 1]];
+  for (const [k, n] of fila) {
+    if (b < n || cargaTocada[k]) continue;
+    cargaTocada[k] = true;
+    if (entrou && b > n) cargas[k].final();
+    else setTimeout(() => cargas[k].tocar(), 400);
+  }
+};
+
+/* ================================================================ Parte 4 · ADR */
+ganchos["s-adr-decisao"] = (b) => $("#s-adr-decisao .decisao-card").classList.toggle("carimbou", b >= 2);
+
+function montarAlternativas() {
+  const fs = Object.fromEntries(DADOS.parte2.formas.map((f) => [f.id, f]));
+  const mq = Object.fromEntries(DADOS.parte2.matriz_quanta.map((m) => [m.id, m.valores]));
+  const alts = [
+    { nome: "Monólito modular", sub: "Notificações no mesmo artefato", f: fs.monolito, q: mq.monolito[0], qn: "", decisao: true,
+      custa: "Continua 1 quantum; mudar Notificações exige implantar tudo.", gatilho: "A condição de falseamento." },
+    { nome: "B completa", sub: "4 entradas em fila + banco próprio", f: fs.extracao, q: mq.extracao[3], qn: "a única que separa a execução",
+      custa: "Fila, banco e chave por evento.", gatilho: "A medição confirmar o motivador." },
+    { nome: "B só no deploy", sub: "síncrono ou banco compartilhado", f: fs.extracao, q: mq.extracao[0], qn: "separa a implantação, não a falha",
+      custa: "A mais barata; já publica Notificações sozinha.", gatilho: "O motivador virar cadência de release." },
+    { nome: "D · por domínio", sub: "8 serviços", f: fs.dominio, q: mq.dominio[0], qn: `${mq.dominio[3]} só com filas e bancos separados`,
+      custa: `${fs.dominio.remotas} remotas e ${fs.dominio.diretas} chamadas diretas do Checkout.`, gatilho: "Vários domínios com motivadores comprovados." },
+  ];
+  const max = Math.max(...alts.map((a) => a.f.minutos)) * 1.15;
+  $("#alternativas").innerHTML = alts.map((a, i) => `
+    <div class="cartao alt ${a.decisao ? "escolhida" : ""}" data-build="${i}">
+      ${a.decisao ? `<span class="selo-dec">✓ Decisão</span>` : ""}
+      <h3>${a.nome}</h3><p class="nota">${a.sub}</p>
+      <div class="alt-q"><span class="v num">${a.q}</span><span>quant${a.q === 1 ? "um" : "a"}</span></div>
+      <p class="alt-qn">${a.qn || "&nbsp;"}</p>
+      <dl>
+        <dt>Artefatos</dt><dd class="num">${a.f.artefatos}</dd>
+        <dt>Dependências remotas</dt><dd class="num">${a.f.remotas}</dd>
+        <dt>Chamadas diretas do Checkout</dt><dd class="num">${a.f.diretas}</dd>
+        <dt>Falha por compra</dt><dd class="num">${pct(a.f.p_falha)}</dd>
+        <dt>Disponibilidade</dt><dd class="num">${pct(a.f.disponibilidade)}</dd>
+      </dl>
+      <div class="alt-min"><span>Fora por mês</span><b class="num">${fmt(a.f.minutos, 2)} min</b></div>
+      <span class="trilho"><span class="b" data-w="${(100 * a.f.minutos) / max}"></span></span>
+      <p class="alt-linha"><b>Custa:</b> ${a.custa}</p>
+      <p class="alt-linha"><b>Gatilho:</b> ${a.gatilho}</p>
+    </div>`).join("");
+}
+ganchos["s-adr-alternativas"] = (b, entrou) => {
+  const cards = $$("#alternativas .alt");
+  cards.forEach((c, i) => {
+    const barra = $(".b", c);
+    if (entrou || i > b) barra.style.width = 0;
+    if (i <= b) setTimeout(() => (barra.style.width = barra.dataset.w + "%"), entrou ? 300 + i * 120 : 300);
+  });
+};
+
+function montarCusto() {
+  const m = DADOS.parte2.formas.find((f) => f.id === "monolito");
+  const p3c = DADOS.parte1.novo.find((x) => x.id === "3c");
+  const tiles = [
+    [m.artefatos, 0, "", "artefato"], [m.remotas, 0, "", "dependências remotas"], [m.p_falha * 100, 2, "%", "falha de rede por compra"],
+    [m.disponibilidade * 100, 2, "%", "disponibilidade"], [m.minutos, 2, "", "min/mês fora do ar"],
+  ];
+  $("#tiles-custo").innerHTML = tiles.map(([v, d, suf, r], i) =>
+    `<div class="cartao tile" data-build="0" style="transition-delay:${i * 80}ms"><b class="num" data-alvo="${v}" data-dec="${d}" data-suf="${suf}">0</b><span>${r}</span></div>`).join("");
+  const c = $("#custo-parte1");
+  c.dataset.build = "2";
+  c.innerHTML = `<b>A Parte 1 só valeria depois de extrair</b>Até 3 tentativas com a mesma chave nas 4 entradas: pior caso de ${fmt(p3c.pior_s)} s, registro de chaves e ${p3c.incertos} incerto em ${fmt(2000)} compras para conciliar.`;
+}
+ganchos["s-adr-custo"] = (b, entrou) => {
+  if (!entrou) return;
+  $$("#tiles-custo b").forEach((v, i) => { v.dataset.v = 0; setTimeout(() => contar(v, +v.dataset.alvo, { dur: 1000, dec: +v.dataset.dec, suf: v.dataset.suf }), 150 + i * 80); });
+};
+
+ganchos["s-adr-falseamento"] = (b, entrou) => {
+  const f = $("#s-adr-falseamento .falseia");
+  if (entrou) { f.classList.remove("rodando"); void f.offsetWidth; }
+  f.classList.toggle("rodando", b >= 1);
 };
 
 /* ================================================================ Início */
@@ -951,13 +1131,14 @@ async function iniciar() {
   montarSequencia();
   montarWaffle();
   montarComparacao();
-  montarDumbbell($("#dumb-p95"), "p95", { dominio: [150, 380], ticks: [150, 200, 250, 300, 350], fmtV: (v) => fmt(v), unid: " ms" });
-  montarDumbbell($("#dumb-dup"), "dup", { dominio: [0.005, 0.016], ticks: [0.006, 0.008, 0.01, 0.012, 0.014, 0.016], fmtV: (v) => pct(v), unid: "" });
-  montarDecisao();
+  montarResultado();
   montarFormas();
-  montarCustos();
   montarQuanta();
-  montarMatriz();
+  montarFalhas();
+  montarTempestade();
+  montarAlternativas();
+  montarCusto();
+  setInterval(tique, 500);
   montarMoldura();
   const lerHash = () => {
     const m = location.hash.match(/^#(\d+)(?:\.(\d+))?/);

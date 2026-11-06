@@ -17,6 +17,7 @@
     <div class="marca"><span class="logo"></span>Orion<small>extrair ou não extrair</small></div>
     <span class="parte-chip" id="parte-chip">Abertura</span>
     <div class="espaco"></div>
+    <span class="orador" id="orador" data-tip="Tempo de fala de quem apresenta esta parte · R zera"><i></i><b id="orador-nome"></b><span class="num" id="cronometro">0:00</span></span>
     <button class="icone-btn" id="btn-tema" title="Alternar tema (T)" aria-label="Alternar tema">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
     </button>
@@ -27,7 +28,7 @@
 
   <main class="deck" id="deck">
 
-    <!-- 1 · Capa -->
+    <!-- ===================================================== Abertura -->
     <section class="slide" data-parte="Abertura" data-builds="0" id="s-capa">
       <svg class="capa-grafo" id="capa-grafo" preserveAspectRatio="xMidYMid slice"></svg>
       <div class="conteudo capa">
@@ -38,42 +39,46 @@
       </div>
     </section>
 
-    <!-- 2 · Cenário -->
-    <section class="slide" data-parte="Cenário" data-builds="3" id="s-cenario">
+    <!-- ===================================================== Gabriel Lopes Pereira -->
+    <section class="slide" data-parte="Cenário" data-quem="lopes" data-builds="3" id="s-cenario">
       <div class="conteudo duas">
         <div>
           <span class="kicker">O cenário</span>
           <h2>Orion: <span class="grad">10 componentes</span>, 17 dependências</h2>
           <p class="lead">O marketplace didático da disciplina. Cada seta <b>A → B</b> quer dizer que A depende de B.</p>
-          <div class="passo" data-build="1"><span class="n">1</span><p>O candidato à extração é <b>Notificações</b>. Os outros nove componentes ficam juntos.</p></div>
-          <div class="passo" data-build="2"><span class="n">2</span><p>Notificações recebe <b>quatro entradas</b>: Pedidos, Pagamentos, Logística e Integrações.</p></div>
-          <div class="passo alerta" data-build="3"><span class="n">!</span><p>O Mini-Orion já trata algumas falhas com uma <b>fila em memória</b>, então a necessidade de extrair <b>ainda não está comprovada</b>. Partimos da hipótese de que a notificação pode chegar depois.</p></div>
+          <div class="passo" data-build="1"><span class="n">1</span><p>O candidato é <b>Notificações</b>. Os outros nove componentes ficam juntos.</p></div>
+          <div class="passo" data-build="2"><span class="n">2</span><p>Ela recebe <b>quatro entradas</b>: Pedidos, Pagamentos, Logística e Integrações. O motivador é <b>isolar falhas</b>: o aviso pode falhar sem parar a compra.</p></div>
+          <div class="passo alerta" data-build="3"><span class="n">!</span><p>O Mini-Orion já trata parte dessas falhas com uma <b>fila em memória</b>, então a necessidade de extrair <b>ainda não está comprovada</b>.</p></div>
         </div>
         <div class="cartao painel grafo-wrap"><svg class="grafo" id="grafo-cenario"></svg></div>
       </div>
     </section>
 
-    <!-- 3 · Hipóteses -->
-    <section class="slide" data-parte="Cenário" data-builds="1" id="s-hipoteses">
+    <section class="slide" data-parte="Cenário" data-quem="lopes" data-builds="0" id="s-hipoteses">
       <div class="conteudo">
-        <span class="kicker">Hipóteses de trabalho</span>
+        <span class="kicker">Hipóteses e origem de cada valor</span>
         <h2>Uma rede <span class="grad">mais lenta</span>, mas que perde menos</h2>
-        <p class="lead">Mudamos as hipóteses do professor para ver se as conclusões se mantêm. <b>São hipóteses didáticas, não medições do Orion.</b></p>
+        <p class="lead">Mudamos as hipóteses do professor para ver se as conclusões se mantêm. <b>Nenhum valor é medição do Orion</b>: cada um diz de onde veio.</p>
         <div class="hip-grade" id="hip-grade"></div>
-        <p class="nota" data-build="1" style="margin-top:16px">Valores lidos de <code>meu_ensaio.py</code> e <code>meu_quantum.py</code> quando o servidor sobe. Na Parte 2 a falha por chamada também é 1%, e as fórmulas supõem falhas independentes.</p>
       </div>
     </section>
 
-    <!-- 4 · O problema -->
-    <section class="slide" data-parte="Parte 1 · Custo da rede" data-builds="2" id="s-problema">
+    <section class="slide" data-parte="Parte 1 · Custo da rede" data-quem="lopes" data-builds="3" id="s-problema">
       <div class="conteudo duas">
         <div>
           <span class="kicker">Parte 1 · O problema</span>
           <h2>A cobrança acontece, <span class="grad">a resposta se perde</span></h2>
-          <p class="lead">Da Aula 16: do lado do Checkout, “não recebi resposta” não quer dizer “não cobrou”.</p>
-          <div class="passo alerta" data-build="0"><span class="n">1</span><p>O Pagamentos cobra, mas a resposta se perde na rede. O Checkout espera o <b>timeout de 1 s</b>.</p></div>
-          <div class="passo alerta" data-build="1"><span class="n">2</span><p><b>Repetir sem chave:</b> o Pagamentos vê um pedido novo e <b>cobra de novo</b>.</p></div>
-          <div class="passo ok" data-build="2"><span class="n">3</span><p><b>Repetir com a mesma chave de idempotência:</b> o Pagamentos reconhece a chave e devolve o resultado anterior, <b>sem cobrar outra vez</b>.</p></div>
+          <div class="passo compacto alerta" data-build="0"><span class="n">1</span><p>O Pagamentos cobra, mas a resposta se perde. O Checkout espera o <b>timeout de 1 s</b> sem saber se cobrou.</p></div>
+          <div class="passo compacto alerta" data-build="1"><span class="n">2</span><p><b>Repetir sem chave:</b> parece um pedido novo e <b>cobra de novo</b>.</p></div>
+          <div class="passo compacto ok" data-build="2"><span class="n">3</span><p><b>Repetir com a mesma chave:</b> devolve o resultado anterior, <b>sem cobrar outra vez</b>.</p></div>
+          <div class="previsao-mini" data-build="3">
+            <div class="rot">📝 Previsão registrada antes de rodar</div>
+            <p>Com <b>3 tentativas sem chave</b>, em relação a 2:</p>
+            <div class="prev-linhas">
+              <span class="sobe">↑ mais duplicações</span><span class="nota">uma cobrança já feita pode ser repetida</span>
+              <span class="desce">↓ menos incertos</span><span class="nota">a tentativa a mais pode recuperar a resposta</span>
+            </div>
+          </div>
         </div>
         <div class="cartao painel">
           <div class="cenas" id="cenas-tabs"></div>
@@ -82,30 +87,7 @@
       </div>
     </section>
 
-    <!-- 5 · Previsão -->
-    <section class="slide" data-parte="Parte 1 · Custo da rede" data-builds="2" id="s-previsao">
-      <div class="conteudo">
-        <span class="kicker">Parte 1 · Antes de rodar</span>
-        <h2>A previsão que <span class="grad">registramos antes</span></h2>
-        <p class="lead">Acrescentamos uma política nova: <b>três tentativas sem chave</b>. O que muda em relação a duas?</p>
-        <div class="previsao">
-          <div class="cartao prev-card sobe" data-build="1">
-            <div class="rot nota">Compras com cobrança duplicada</div>
-            <div class="grande"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Mais</div>
-            <p>Uma cobrança já feita pode ser repetida mais uma vez.</p>
-          </div>
-          <div class="cartao prev-card desce" data-build="2">
-            <div class="rot nota">Resultados incertos</div>
-            <div class="grande"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>Menos</div>
-            <p>A tentativa a mais pode recuperar uma resposta.</p>
-          </div>
-        </div>
-        <p class="citacao" data-build="2">Previsão preservada no registro anterior à execução personalizada. Os próximos slides mostram se ela se confirma.</p>
-      </div>
-    </section>
-
-    <!-- 6 · Ensaio -->
-    <section class="slide" data-parte="Parte 1 · Custo da rede" data-builds="4" id="s-ensaio">
+    <section class="slide" data-parte="Parte 1 · Custo da rede" data-quem="lopes" data-builds="3" id="s-ensaio">
       <div class="conteudo duas">
         <div>
           <span class="kicker">Parte 1 · O ensaio</span>
@@ -124,8 +106,7 @@
       </div>
     </section>
 
-    <!-- 7 · Comparação -->
-    <section class="slide" data-parte="Parte 1 · Custo da rede" data-builds="2" id="s-comparacao">
+    <section class="slide" data-parte="Parte 1 · Custo da rede" data-quem="lopes" data-builds="2" id="s-comparacao">
       <div class="conteudo">
         <span class="kicker">Parte 1 · Resultado</span>
         <h2>Sem chave, <span class="grad">repetir troca um erro por outro</span></h2>
@@ -134,43 +115,12 @@
           <div class="cartao painel"><h3>Compras com cobrança duplicada</h3><p class="nota">Compras com mais de uma cobrança aprovada.</p><div class="barras" id="barras-dup"></div></div>
           <div class="cartao painel"><h3>Resultados incertos</h3><p class="nota">Terminam sem saber se cobrou, depois de esgotar as tentativas.</p><div class="barras" id="barras-inc"></div></div>
         </div>
-        <div data-build="2"><span class="callout"><span class="ok">✓</span>Previsão confirmada: de 2 para 3 tentativas sem chave, as duplicações sobem de 20 para 21 e os incertos caem de 2 para 1.</span></div>
+        <div data-build="1"><span class="callout"><span class="ok">✓</span><span id="callout-previsao"></span></span></div>
+        <div class="decisao-faixa" data-build="2" id="decisao-faixa"></div>
       </div>
     </section>
 
-    <!-- 8 · Varredura -->
-    <section class="slide" data-parte="Parte 1 · Custo da rede" data-builds="2" id="s-varredura">
-      <div class="conteudo">
-        <span class="kicker">Parte 1 · Dez sementes</span>
-        <h2>Os sorteios mudam, <span class="grad">o problema não</span></h2>
-        <p class="lead">A mesma política (<b>duas tentativas sem chave</b>) com sementes de 1 a 10. Cada ponto se move da base do professor até o nosso cenário.</p>
-        <div class="legenda-serie"><span><i class="d1"></i>Base do professor</span><span><i class="d2"></i>Nosso cenário</span></div>
-        <div class="small-mult">
-          <div class="cartao painel"><h3>Tempo no P95 (ms)</h3><p class="nota">Rede mais lenta: o P95 sobe em todas as sementes.</p><svg class="dumb" id="dumb-p95"></svg></div>
-          <div class="cartao painel" data-build="1"><h3>Compras com cobrança duplicada (%)</h3><p class="nota">Menos falhas, mas nenhuma semente zera as duplicações.</p><svg class="dumb" id="dumb-dup"></svg></div>
-        </div>
-        <p class="lead" data-build="2" style="margin-top:16px">Na base, de <b>0,85% a 1,35%</b> de duplicações; no nosso cenário, de <b>0,75% a 1,45%</b>. <b>Mudar as hipóteses não resolve a repetição. Só a chave resolve.</b></p>
-      </div>
-    </section>
-
-    <!-- 9 · Decisão Parte 1 -->
-    <section class="slide" data-parte="Parte 1 · Custo da rede" data-builds="2" id="s-decisao1">
-      <div class="conteudo">
-        <span class="kicker">Parte 1 · Decisão</span>
-        <h2>Até <span class="grad">três tentativas com a mesma chave</span></h2>
-        <div class="hero-num" id="hero-decisao"></div>
-        <div class="custos" data-build="1">
-          <div class="custo"><b>Mais espera</b>No pior caso, a compra leva 3 s.</div>
-          <div class="custo"><b>Armazenar as chaves</b>O Pagamentos precisa lembrar o que já processou.</div>
-          <div class="custo"><b>O caso incerto continua</b>Ainda exige consulta ou conciliação.</div>
-        </div>
-        <div class="licao" data-build="2">Para Notificações, a lição é que <b>repetir um envio também pode repetir seu efeito</b>: o cliente pode receber o mesmo aviso duas vezes.</div>
-        <p class="nota" data-build="2" style="margin-top:12px">O ensaio não mede notificações, concorrência, persistência das chaves nem espera entre tentativas.</p>
-      </div>
-    </section>
-
-    <!-- 10 · Formas -->
-    <section class="slide" data-parte="Parte 2 · Formas de dividir" data-builds="3" id="s-formas">
+    <section class="slide" data-parte="Parte 2 · Formas de dividir" data-quem="lopes" data-builds="3" id="s-formas">
       <div class="conteudo duas">
         <div>
           <span class="kicker">Parte 2 · Formas de dividir</span>
@@ -178,6 +128,7 @@
           <p class="lead">As caixas tracejadas são artefatos implantáveis. As <b style="color:var(--accent-2)">setas animadas</b> cruzam a rede.</p>
           <div class="stats-forma" id="stats-forma"></div>
           <p class="explica" id="explica-forma"></p>
+          <div class="conferido" id="conferido"></div>
         </div>
         <div>
           <div class="formas-tabs" id="formas-tabs"></div>
@@ -186,79 +137,153 @@
       </div>
     </section>
 
-    <!-- 11 · Custos -->
-    <section class="slide" data-parte="Parte 2 · Formas de dividir" data-builds="2" id="s-custos">
+    <section class="slide" data-parte="Parte 2 · Formas de dividir" data-quem="lopes" data-builds="2" id="s-quanta">
       <div class="conteudo">
-        <span class="kicker">Parte 2 · Custo para o Checkout</span>
-        <h2>Cada artefato a mais <span class="grad">tira minutos do mês</span></h2>
-        <div class="formulas" data-build="0">
-          <span class="formula">P(falha) = 1 − 0,99<sup><em>n</em></sup></span>
-          <span class="formula">A = 0,999<sup><em>k</em></sup></span>
-          <span class="formula">minutos = (1 − A) × 43.200</span>
-        </div>
-        <p class="nota" data-build="0" style="margin:-6px 0 6px"><em style="color:var(--accent-2);font-style:normal">n</em> = chamadas remotas diretas do Checkout · <em style="color:var(--accent-2);font-style:normal">k</em> = artefatos distintos tocados, contando o do Checkout</p>
-        <table class="custo-tab" id="custo-tab"></table>
-        <p class="lead" data-build="2" style="margin-top:10px">Isso é só o recorte <b>direto e síncrono</b> do Checkout, sem dependências indiretas, banco ou fila. <b>Zero chamadas remotas diretas na extração não quer dizer risco zero no sistema.</b></p>
-      </div>
-    </section>
-
-    <!-- 12 · Quanta -->
-    <section class="slide" data-parte="Parte 2 · Formas de dividir" data-builds="4" id="s-quanta">
-      <div class="conteudo">
-        <span class="kicker">Parte 2 · Quanta arquiteturais</span>
+        <span class="kicker">Parte 2 · Quanta e a opção --assincronas</span>
         <h2>Separar o deploy <span class="grad">não separa a execução</span></h2>
         <div class="quanta-ui">
           <div>
             <p class="nota" style="margin:0">Um quantum junta componentes ligados por um mesmo artefato, por chamada síncrona ou por banco compartilhado.</p>
             <div class="quanta-num"><span class="v num" id="q-num">1</span><span class="u" id="q-u">quantum</span></div>
             <div class="mensagem" id="q-msg"></div>
+            <div class="cli" id="q-cli"></div>
             <div class="controle"><div class="rot">Forma</div><div class="seg" id="q-forma"></div></div>
             <div class="controle"><div class="rot">Banco de dados</div><div class="seg" id="q-banco"></div></div>
             <div class="controle"><div class="rot">Cenários prontos</div><div class="presets" id="q-presets"></div></div>
-            <p class="nota">Clique numa seta para trocar entre chamada síncrona e fila assíncrona.</p>
           </div>
           <div class="cartao painel grafo-wrap">
             <svg class="grafo interativo" id="grafo-quanta"></svg>
             <div class="grupos-leg" id="q-leg"></div>
+            <p class="nota" style="margin:8px 0 0">Clique numa seta para trocar entre chamada síncrona e fila. Cada mudança roda o <code>meu_quantum.py</code> no servidor.</p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- 13 · Matriz -->
-    <section class="slide" data-parte="Parte 2 · Formas de dividir" data-builds="1" id="s-matriz">
+    <!-- ===================================================== Gabriel Alves · Parte 3 -->
+    <section class="slide" data-parte="Parte 3 · Leitura" data-quem="alves" data-builds="3" id="s-falhas">
       <div class="conteudo">
-        <span class="kicker">Parte 2 · Quanta nas quatro situações</span>
-        <h2>Só <span class="grad">filas + bancos separados</span> chegam a dois</h2>
-        <p class="lead">Usando as quatro filas de entrada de Notificações. As filas mudam apenas a conta dos quanta, e os custos continuam os do recorte síncrono.</p>
-        <table class="matriz" id="matriz"></table>
+        <span class="kicker">Parte 3 · Leitura</span>
+        <h2>Três jeitos de <span class="grad">uma chamada falhar</span></h2>
+        <p class="artigo"><span class="artigo-ic">📄</span><span><b>Designing robust and predictable APIs with idempotency</b> · Brandur Leach, blog da Stripe, 2017 · opção B</span></p>
+        <div class="falhas" id="falhas"></div>
+        <div class="faixa-alerta" data-build="3"><b>Para o Checkout, a 1ª e a 3ª viram o mesmo <code>TimeoutDeRede</code></b>: ele não distingue “nem chegou” de “cobrou e a resposta se perdeu”. É o “não sei se cobrou” da Aula 16.</div>
       </div>
     </section>
 
-    <!-- 14 · Conclusão -->
-    <section class="slide" data-parte="Conclusão" data-builds="3" id="s-conclusao">
+    <section class="slide" data-parte="Parte 3 · Leitura" data-quem="alves" data-builds="3" id="s-artigo">
       <div class="conteudo">
-        <span class="kicker">Conclusão</span>
-        <p class="frase-final">Extrair Notificações só isola falhas se <span class="grad">a execução também for separada</span>.</p>
-        <div class="concl">
-          <div class="cartao" data-build="1">
-            <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg></div>
-            <h3>As 4 entradas em fila</h3>
-            <p>Pedidos, Pagamentos, Logística e Integrações enviam por fila. Uma entrada síncrona já basta para manter um único quantum.</p>
+        <span class="kicker">Parte 3 · Artigo × Mini-Orion</span>
+        <h2>A mesma ideia, <span class="grad">com menos estado</span></h2>
+        <table class="comp-tab" id="comp-tab">
+          <thead><tr><th></th><th><span class="tag-art">Artigo (Stripe)</span></th><th><span class="tag-mini">Mini-Orion</span></th></tr></thead>
+          <tbody>
+            <tr data-build="0"><th>Quem gera a chave</th><td>O cliente gera um identificador único por operação e o envia no cabeçalho <code>Idempotency-Key</code>.</td><td>O <code>ServicoCheckout</code> gera uma <code>ChaveIdempotencia</code> por fechamento.</td></tr>
+            <tr data-build="1"><th>O que o servidor guarda</th><td>O <b>estado da requisição</b>, associado à chave.</td><td>Só o <b>resultado final</b>, em memória e sem expiração (<code>ServicoPagamentos</code>).</td></tr>
+            <tr data-build="2"><th>Operação interrompida no meio</th><td>Guarda o estado intermediário e <b>retoma de onde parou</b>.</td><td>Não acontece: a cobrança é atômica e o ensaio nem simula esse caso.</td></tr>
+          </tbody>
+        </table>
+        <div data-build="3"><span class="callout"><span class="ok">→</span>O artigo vai além: além do resultado, guarda o caminho até ele.</span></div>
+      </div>
+    </section>
+
+    <section class="slide" data-parte="Parte 3 · Leitura" data-quem="alves" data-builds="2" id="s-tempestade">
+      <div class="conteudo">
+        <span class="kicker">Parte 3 · Repetir na hora</span>
+        <h2>Todos repetindo juntos <span class="grad">sobrecarregam quem se recupera</span></h2>
+        <p class="lead" id="tempestade-lead"></p>
+        <div class="small-mult">
+          <div class="cartao painel" data-build="0"><h3>Repetir na hora</h3><p class="nota">Todos estouram o timeout juntos e repetem juntos.</p><svg class="carga" id="carga-hora"></svg><div class="carga-res" id="res-hora"></div></div>
+          <div class="cartao painel" data-build="1"><h3>Backoff com jitter</h3><p class="nota">Cada cliente espera um tempo crescente e sorteado.</p><svg class="carga" id="carga-jitter"></svg><div class="carga-res" id="res-jitter"></div></div>
+        </div>
+        <div class="legenda-serie" style="margin:10px 0 0"><span><i class="q"></i>Atendidas</span><span><i class="q" style="background:var(--critical)"></i>Recusadas por falta de capacidade</span><span class="nota">Ilustração: 40 clientes, capacidade de 8 por intervalo. Não é medição.</span></div>
+        <div class="licao" data-build="2"><b>Ligação com o cenário:</b> extraída, Notificações passa a ter o mesmo “não sei” nas 4 entradas. Como <code>EventoNotificacao</code> não tem chave, <b>cada reentrega da fila vira um aviso duplicado</b>. A extração exigiria uma chave por evento e reprocessamento com backoff e jitter.</div>
+      </div>
+    </section>
+
+    <!-- ===================================================== Gabriel Alves · Parte 4 -->
+    <section class="slide" data-parte="Parte 4 · Decisão (ADR)" data-quem="alves" data-builds="2" id="s-adr-decisao">
+      <div class="conteudo duas meio">
+        <div>
+          <span class="kicker">Parte 4 · Contexto</span>
+          <h2>Um motivador <span class="grad">alegado, não medido</span></h2>
+          <div class="passo" data-build="0"><span class="n">1</span><p>Notificações recebe chamadas de <b>Pedidos, Pagamentos, Logística e Integrações</b>. O motivador é <b>isolamento de falha</b>: um erro no envio de avisos não deveria interromper a compra.</p></div>
+          <div class="passo alerta" data-build="1"><span class="n">!</span><p><b>Não há medição</b> de compras afetadas, e o Mini-Orion já absorve essas falhas no próprio processo, com o <code>NotificacaoTolerante</code> e a fila em memória.</p></div>
+          <div class="passo alerta" data-build="1"><span class="n">?</span><p>Falta confirmar com o negócio que <b>o aviso pode atrasar</b>.</p></div>
+        </div>
+        <div class="cartao decisao-card" data-build="2">
+          <span class="carimbo">Decisão</span>
+          <p class="decisao-txt">Manter o <span class="grad">monólito modular</span>, com Notificações no mesmo artefato, <b>até que o motivador seja comprovado por medição</b>.</p>
+          <div class="motivador"><span>Motivador</span><div><div class="trilha-mot"><i></i></div><div class="mot-rot"><span class="mot-a">alegado</span><span>medido</span></div></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-parte="Parte 4 · Decisão (ADR)" data-quem="alves" data-builds="3" id="s-adr-alternativas">
+      <div class="conteudo">
+        <span class="kicker">Parte 4 · Alternativas reais</span>
+        <h2>O que <span class="grad">cada caminho custa</span></h2>
+        <div class="alternativas" id="alternativas"></div>
+        <p class="nota" style="margin-top:12px">Números do recorte direto do Checkout (<code>meu_quantum.py</code>). Falha de 1% por chamada e 99,9% por artefato são hipóteses.</p>
+      </div>
+    </section>
+
+    <section class="slide" data-parte="Parte 4 · Decisão (ADR)" data-quem="alves" data-builds="2" id="s-adr-custo">
+      <div class="conteudo">
+        <span class="kicker">Parte 4 · Custo da decisão</span>
+        <h2>Barato na rede, <span class="grad">caro no acoplamento</span></h2>
+        <div class="tiles" id="tiles-custo"></div>
+        <div class="custos" data-build="1">
+          <div class="custo"><b>Continua 1 quantum</b>Uma falha que derrube o processo, como falta de memória no envio, para a compra junto.</div>
+          <div class="custo"><b>Deploy acoplado</b>Mudar Notificações exige implantar os dez componentes.</div>
+          <div class="custo" id="custo-parte1"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-parte="Parte 4 · Decisão (ADR)" data-quem="alves" data-builds="2" id="s-adr-falseamento">
+      <div class="conteudo">
+        <span class="kicker">Parte 4 · Condição de falseamento</span>
+        <h2>Quando esta decisão <span class="grad">estará errada</span></h2>
+        <div class="falseia cartao" data-build="0">
+          <div class="janela">
+            <div class="janela-rot"><span>hoje</span><span>3 meses <em>ou</em> 2 próximas campanhas · o que vier primeiro</span></div>
+            <div class="janela-barra"><i class="preenche"></i><span class="camp c1">campanha</span><span class="camp c2">campanha</span><span class="raio">⚡</span></div>
           </div>
-          <div class="cartao" data-build="2">
-            <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/></svg></div>
-            <h3>Banco próprio</h3>
-            <p>Com banco compartilhado, nem tornar todas as dependências assíncronas separa os quanta.</p>
-          </div>
-          <div class="cartao" data-build="3">
-            <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"/></svg></div>
-            <h3>Envio idempotente</h3>
-            <p>Filas costumam reentregar mensagens. Sem chave, repetir o envio repete o aviso, assim como repetir a cobrança repetiu o débito.</p>
+          <div class="se">
+            <div class="se-rot">Basta <b>1 incidente</b> em que Notificações:</div>
+            <div class="se-opcoes"><span class="opc">interrompeu compras</span><span class="ou">ou</span><span class="opc">levou o p95 do fechamento acima da meta de <b>2 s</b></span></div>
           </div>
         </div>
-        <p class="lead" data-build="3">Falta validar com o negócio que <b>a notificação pode chegar depois</b>. Como a fila em memória já trata parte das falhas, a necessidade de extrair <b>ainda não está comprovada</b>.</p>
-        <div class="creditos" data-build="3" id="creditos"></div>
+        <div class="entao" data-build="2">
+          <span class="seta-grande">→</span>
+          <div><b>O motivador estaria comprovado.</b> A decisão passa a ser a alternativa <span class="grad"><b>B completa</b></span>: as 4 entradas em fila, banco próprio e chave por evento.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-parte="Parte 4 · Decisão (ADR)" data-quem="alves" data-builds="3" id="s-adr-medicao">
+      <div class="conteudo">
+        <span class="kicker">Parte 4 · Como mediria</span>
+        <h2>Do <span class="grad">modelo</span> para a <span class="grad">produção</span></h2>
+        <table class="comp-tab medicao" id="medicao">
+          <thead><tr><th>O que</th><th>Hoje vem de</th><th>Em produção viria de</th></tr></thead>
+          <tbody>
+            <tr data-build="0"><th>Artefatos, dependências, chamadas diretas, quanta</th><td><span class="fonte cod">código</span><code>meu_quantum.py</code>, conferido pelos testes</td><td>O próprio código</td></tr>
+            <tr data-build="1"><th>Falha de 1% por chamada, 99,9% por artefato, minutos fora</th><td><span class="fonte hip">hipótese</span>Nossa (1%) e da Aula 17 (99,9%)</td><td>Taxa de erros e timeouts nos logs; monitoramento de disponibilidade de cada artefato</td></tr>
+            <tr data-build="2"><th>Duplicações e incertos</th><td><span class="fonte ens">ensaio</span>2.000 compras simuladas</td><td>Conciliação com o extrato do provedor; contagem de cobranças indeterminadas</td></tr>
+            <tr data-build="3"><th>Condição de falseamento</th><td><span class="fonte hip">ainda não medido</span></td><td>p95 do fechamento e registro de incidentes</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===================================================== Encerramento -->
+    <section class="slide" data-parte="Encerramento" data-builds="0" id="s-fim">
+      <div class="conteudo capa">
+        <p class="frase-final">Separar o deploy não separa a falha.<br><span class="grad">Primeiro medir, depois extrair.</span></p>
+        <div class="alunos" id="creditos"></div>
+        <p class="dica">Obrigado! Perguntas?</p>
       </div>
     </section>
   </main>
