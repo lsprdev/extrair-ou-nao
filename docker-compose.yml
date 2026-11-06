@@ -1,0 +1,12 @@
+services:
+  apresentacao:
+    build:
+      context: .
+      dockerfile: apresentacao/Dockerfile
+    image: orion-apresentacao:latest
+    container_name: orion-apresentacao
+    environment:
+      PORT: "8000"
+    ports:
+      - "${PORTA:-8000}:8000"
+    restart: unless-stopped

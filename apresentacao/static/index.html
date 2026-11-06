@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Extrair ou não extrair</title>
+  <meta name="description" content="Apresentação animada do projeto Extrair ou não extrair — Orion, de Gabriel Alves e Gabriel Lopes Pereira.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%239085e9'/%3E%3Cstop offset='1' stop-color='%233fc6e0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9' fill='url(%23g)'/%3E%3Ccircle cx='11' cy='11' r='3.5' fill='%23fff'/%3E%3Ccircle cx='21' cy='21' r='3.5' fill='%23fff' fill-opacity='.7'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="backdrop"><div class="blob a"></div><div class="blob b"></div><div class="blob c"></div><div class="grade"></div></div>
+  <div class="carregando" id="carregando"><div class="spinner"></div></div>
+  <div class="progresso"><i id="barra-progresso"></i></div>
+
+  <header class="topo">
+    <div class="marca"><span class="logo"></span>Orion<small>extrair ou não extrair</small></div>
+    <span class="parte-chip" id="parte-chip">Abertura</span>
+    <div class="espaco"></div>
+    <button class="icone-btn" id="btn-tema" title="Alternar tema (T)" aria-label="Alternar tema">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
+    <button class="icone-btn" id="btn-tela" title="Tela cheia (F)" aria-label="Tela cheia">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+    </button>
+  </header>
+
+  <main class="deck" id="deck">
+
+    <!-- 1 · Capa -->
+    <section class="slide" data-parte="Abertura" data-builds="0" id="s-capa">
+      <svg class="capa-grafo" id="capa-grafo" preserveAspectRatio="xMidYMid slice"></svg>
+      <div class="conteudo capa">
+        <h1><span class="linha">Extrair</span><span class="linha grad">ou não extrair?</span></h1>
+        <p class="sub">Isolar <b>Notificações</b> no Orion para que falhas no envio de avisos não interrompam a compra. O que a rede custa, e o que de fato desacopla.</p>
+        <div class="alunos" id="alunos"></div>
+        <p class="dica">Use <kbd>→</kbd> ou <kbd>espaço</kbd> para avançar · <kbd>←</kbd> volta · <kbd>F</kbd> tela cheia · <kbd>T</kbd> tema</p>
+      </div>
+    </section>
+
+    <!-- 2 · Cenário -->
+    <section class="slide" data-parte="Cenário" data-builds="3" id="s-cenario">
+      <div class="conteudo duas">
+        <div>
+          <span class="kicker">O cenário</span>
+          <h2>Orion: <span class="grad">10 componentes</span>, 17 dependências</h2>
+          <p class="lead">O marketplace didático da disciplina. Cada seta <b>A → B</b> quer dizer que A depende de B.</p>
+          <div class="passo" data-build="1"><span class="n">1</span><p>O candidato à extração é <b>Notificações</b>. Os outros nove componentes ficam juntos.</p></div>
+          <div class="passo" data-build="2"><span class="n">2</span><p>Notificações recebe <b>quatro entradas</b>: Pedidos, Pagamentos, Logística e Integrações.</p></div>
+          <div class="passo alerta" data-build="3"><span class="n">!</span><p>O Mini-Orion já trata algumas falhas com uma <b>fila em memória</b>, então a necessidade de extrair <b>ainda não está comprovada</b>. Partimos da hipótese de que a notificação pode chegar depois.</p></div>
+        </div>
+        <div class="cartao painel grafo-wrap"><svg class="grafo" id="grafo-cenario"></svg></div>
+      </div>
+    </section>
+
+    <!-- 3 · Hipóteses -->
+    <section class="slide" data-parte="Cenário" data-builds="1" id="s-hipoteses">
+      <div class="conteudo">
+        <span class="kicker">Hipóteses de trabalho</span>
+        <h2>Uma rede <span class="grad">mais lenta</span>, mas que perde menos</h2>
+        <p class="lead">Mudamos as hipóteses do professor para ver se as conclusões se mantêm. <b>São hipóteses didáticas, não medições do Orion.</b></p>
+        <div class="hip-grade" id="hip-grade"></div>
+        <p class="nota" data-build="1" style="margin-top:16px">Valores lidos de <code>meu_ensaio.py</code> e <code>meu_quantum.py</code> quando o servidor sobe. Na Parte 2 a falha por chamada também é 1%, e as fórmulas supõem falhas independentes.</p>
+      </div>
+    </section>
+
+    <!-- 4 · O problema -->
+    <section class="slide" data-parte="Parte 1 · Custo da rede" data-builds="2" id="s-problema">
+      <div class="conteudo duas">
+        <div>
+          <span class="kicker">Parte 1 · O problema</span>
+          <h2>A cobrança acontece, <span class="grad">a resposta se perde</span></h2>
+          <p class="lead">Da Aula 16: do lado do Checkout, “não recebi resposta” não quer dizer “não cobrou”.</p>
+          <div class="passo alerta" data-build="0"><span class="n">1</span><p>O Pagamentos cobra, mas a resposta se perde na rede. O Checkout espera o <b>timeout de 1 s</b>.</p></div>
+          <div class="passo alerta" data-build="1"><span class="n">2</span><p><b>Repetir sem chave:</b> o Pagamentos vê um pedido novo e <b>cobra de novo</b>.</p></div>
+          <div class="passo ok" data-build="2"><span class="n">3</span><p><b>Repetir com a mesma chave de idempotência:</b> o Pagamentos reconhece a chave e devolve o resultado anterior, <b>sem cobrar outra vez</b>.</p></div>
+        </div>
+        <div class="cartao painel">
+          <div class="cenas" id="cenas-tabs"></div>
+          <svg class="seq" id="seq" viewBox="0 0 900 470"></svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5 · Previsão -->
+    <section class="slide" data-parte="Parte 1 · Custo da rede" data-builds="2" id="s-previsao">
+      <div class="conteudo">
+        <span class="kicker">Parte 1 · Antes de rodar</span>
+        <h2>A previsão que <span class="grad">registramos antes</span></h2>
+        <p class="lead">Acrescentamos uma política nova: <b>três tentativas sem chave</b>. O que muda em relação a duas?</p>
+        <div class="previsao">
+          <div class="cartao prev-card sobe" data-build="1">
+            <div class="rot nota">Compras com cobrança duplicada</div>
+            <div class="grande"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Mais</div>
+            <p>Uma cobrança já feita pode ser repetida mais uma vez.</p>
+          </div>
+          <div class="cartao prev-card desce" data-build="2">
+            <div class="rot nota">Resultados incertos</div>
+            <div class="grande"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>Menos</div>
+            <p>A tentativa a mais pode recuperar uma resposta.</p>
+          </div>
+        </div>
+        <p class="citacao" data-build="2">Previsão preservada no registro anterior à execução personalizada. Os próximos slides mostram se ela se confirma.</p>
+      </div>
+    </section>
+
+    <!-- 6 · Ensaio -->
+    <section class="slide" data-parte="Parte 1 · Custo da rede" data-builds="4" id="s-ensaio">
+      <div class="conteudo duas">
+        <div>
+          <span class="kicker">Parte 1 · O ensaio</span>
+          <h2><span class="grad">2.000 compras</span>, uma a uma</h2>
+          <p class="lead">Cada quadrado é uma compra simulada com o código real do Mini-Orion (semente 42). Passe o mouse para ver os detalhes.</p>
+          <div class="metricas" id="metricas"></div>
+        </div>
+        <div>
+          <div class="politicas" id="politicas"></div>
+          <div class="cartao waffle-box">
+            <div class="waffle-topo"><span class="titulo" id="waffle-titulo"></span><span class="prog num" id="waffle-prog"></span></div>
+            <canvas id="waffle"></canvas>
+            <div class="legenda" id="waffle-leg"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7 · Comparação -->
+    <section class="slide" data-parte="Parte 1 · Custo da rede" data-builds="2" id="s-comparacao">
+      <div class="conteudo">
+        <span class="kicker">Parte 1 · Resultado</span>
+        <h2>Sem chave, <span class="grad">repetir troca um erro por outro</span></h2>
+        <div class="legenda-serie"><span><i class="q"></i>Nosso cenário (40 ms · 700 ms · 1%)</span><span><i class="t"></i>Base do professor (20 ms · 400 ms · 2%)</span></div>
+        <div class="small-mult">
+          <div class="cartao painel"><h3>Compras com cobrança duplicada</h3><p class="nota">Compras com mais de uma cobrança aprovada.</p><div class="barras" id="barras-dup"></div></div>
+          <div class="cartao painel"><h3>Resultados incertos</h3><p class="nota">Terminam sem saber se cobrou, depois de esgotar as tentativas.</p><div class="barras" id="barras-inc"></div></div>
+        </div>
+        <div data-build="2"><span class="callout"><span class="ok">✓</span>Previsão confirmada: de 2 para 3 tentativas sem chave, as duplicações sobem de 20 para 21 e os incertos caem de 2 para 1.</span></div>
+      </div>
+    </section>
+
+    <!-- 8 · Varredura -->
+    <section class="slide" data-parte="Parte 1 · Custo da rede" data-builds="2" id="s-varredura">
+      <div class="conteudo">
+        <span class="kicker">Parte 1 · Dez sementes</span>
+        <h2>Os sorteios mudam, <span class="grad">o problema não</span></h2>
+        <p class="lead">A mesma política (<b>duas tentativas sem chave</b>) com sementes de 1 a 10. Cada ponto se move da base do professor até o nosso cenário.</p>
+        <div class="legenda-serie"><span><i class="d1"></i>Base do professor</span><span><i class="d2"></i>Nosso cenário</span></div>
+        <div class="small-mult">
+          <div class="cartao painel"><h3>Tempo no P95 (ms)</h3><p class="nota">Rede mais lenta: o P95 sobe em todas as sementes.</p><svg class="dumb" id="dumb-p95"></svg></div>
+          <div class="cartao painel" data-build="1"><h3>Compras com cobrança duplicada (%)</h3><p class="nota">Menos falhas, mas nenhuma semente zera as duplicações.</p><svg class="dumb" id="dumb-dup"></svg></div>
+        </div>
+        <p class="lead" data-build="2" style="margin-top:16px">Na base, de <b>0,85% a 1,35%</b> de duplicações; no nosso cenário, de <b>0,75% a 1,45%</b>. <b>Mudar as hipóteses não resolve a repetição. Só a chave resolve.</b></p>
+      </div>
+    </section>
+
+    <!-- 9 · Decisão Parte 1 -->
+    <section class="slide" data-parte="Parte 1 · Custo da rede" data-builds="2" id="s-decisao1">
+      <div class="conteudo">
+        <span class="kicker">Parte 1 · Decisão</span>
+        <h2>Até <span class="grad">três tentativas com a mesma chave</span></h2>
+        <div class="hero-num" id="hero-decisao"></div>
+        <div class="custos" data-build="1">
+          <div class="custo"><b>Mais espera</b>No pior caso, a compra leva 3 s.</div>
+          <div class="custo"><b>Armazenar as chaves</b>O Pagamentos precisa lembrar o que já processou.</div>
+          <div class="custo"><b>O caso incerto continua</b>Ainda exige consulta ou conciliação.</div>
+        </div>
+        <div class="licao" data-build="2">Para Notificações, a lição é que <b>repetir um envio também pode repetir seu efeito</b>: o cliente pode receber o mesmo aviso duas vezes.</div>
+        <p class="nota" data-build="2" style="margin-top:12px">O ensaio não mede notificações, concorrência, persistência das chaves nem espera entre tentativas.</p>
+      </div>
+    </section>
+
+    <!-- 10 · Formas -->
+    <section class="slide" data-parte="Parte 2 · Formas de dividir" data-builds="3" id="s-formas">
+      <div class="conteudo duas">
+        <div>
+          <span class="kicker">Parte 2 · Formas de dividir</span>
+          <h2>Quatro jeitos de <span class="grad">implantar</span> o mesmo grafo</h2>
+          <p class="lead">As caixas tracejadas são artefatos implantáveis. As <b style="color:var(--accent-2)">setas animadas</b> cruzam a rede.</p>
+          <div class="stats-forma" id="stats-forma"></div>
+          <p class="explica" id="explica-forma"></p>
+        </div>
+        <div>
+          <div class="formas-tabs" id="formas-tabs"></div>
+          <div class="cartao painel grafo-wrap"><svg class="grafo" id="grafo-formas"></svg></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11 · Custos -->
+    <section class="slide" data-parte="Parte 2 · Formas de dividir" data-builds="2" id="s-custos">
+      <div class="conteudo">
+        <span class="kicker">Parte 2 · Custo para o Checkout</span>
+        <h2>Cada artefato a mais <span class="grad">tira minutos do mês</span></h2>
+        <div class="formulas" data-build="0">
+          <span class="formula">P(falha) = 1 − 0,99<sup><em>n</em></sup></span>
+          <span class="formula">A = 0,999<sup><em>k</em></sup></span>
+          <span class="formula">minutos = (1 − A) × 43.200</span>
+        </div>
+        <p class="nota" data-build="0" style="margin:-6px 0 6px"><em style="color:var(--accent-2);font-style:normal">n</em> = chamadas remotas diretas do Checkout · <em style="color:var(--accent-2);font-style:normal">k</em> = artefatos distintos tocados, contando o do Checkout</p>
+        <table class="custo-tab" id="custo-tab"></table>
+        <p class="lead" data-build="2" style="margin-top:10px">Isso é só o recorte <b>direto e síncrono</b> do Checkout, sem dependências indiretas, banco ou fila. <b>Zero chamadas remotas diretas na extração não quer dizer risco zero no sistema.</b></p>
+      </div>
+    </section>
+
+    <!-- 12 · Quanta -->
+    <section class="slide" data-parte="Parte 2 · Formas de dividir" data-builds="4" id="s-quanta">
+      <div class="conteudo">
+        <span class="kicker">Parte 2 · Quanta arquiteturais</span>
+        <h2>Separar o deploy <span class="grad">não separa a execução</span></h2>
+        <div class="quanta-ui">
+          <div>
+            <p class="nota" style="margin:0">Um quantum junta componentes ligados por um mesmo artefato, por chamada síncrona ou por banco compartilhado.</p>
+            <div class="quanta-num"><span class="v num" id="q-num">1</span><span class="u" id="q-u">quantum</span></div>
+            <div class="mensagem" id="q-msg"></div>
+            <div class="controle"><div class="rot">Forma</div><div class="seg" id="q-forma"></div></div>
+            <div class="controle"><div class="rot">Banco de dados</div><div class="seg" id="q-banco"></div></div>
+            <div class="controle"><div class="rot">Cenários prontos</div><div class="presets" id="q-presets"></div></div>
+            <p class="nota">Clique numa seta para trocar entre chamada síncrona e fila assíncrona.</p>
+          </div>
+          <div class="cartao painel grafo-wrap">
+            <svg class="grafo interativo" id="grafo-quanta"></svg>
+            <div class="grupos-leg" id="q-leg"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 13 · Matriz -->
+    <section class="slide" data-parte="Parte 2 · Formas de dividir" data-builds="1" id="s-matriz">
+      <div class="conteudo">
+        <span class="kicker">Parte 2 · Quanta nas quatro situações</span>
+        <h2>Só <span class="grad">filas + bancos separados</span> chegam a dois</h2>
+        <p class="lead">Usando as quatro filas de entrada de Notificações. As filas mudam apenas a conta dos quanta, e os custos continuam os do recorte síncrono.</p>
+        <table class="matriz" id="matriz"></table>
+      </div>
+    </section>
+
+    <!-- 14 · Conclusão -->
+    <section class="slide" data-parte="Conclusão" data-builds="3" id="s-conclusao">
+      <div class="conteudo">
+        <span class="kicker">Conclusão</span>
+        <p class="frase-final">Extrair Notificações só isola falhas se <span class="grad">a execução também for separada</span>.</p>
+        <div class="concl">
+          <div class="cartao" data-build="1">
+            <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg></div>
+            <h3>As 4 entradas em fila</h3>
+            <p>Pedidos, Pagamentos, Logística e Integrações enviam por fila. Uma entrada síncrona já basta para manter um único quantum.</p>
+          </div>
+          <div class="cartao" data-build="2">
+            <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/></svg></div>
+            <h3>Banco próprio</h3>
+            <p>Com banco compartilhado, nem tornar todas as dependências assíncronas separa os quanta.</p>
+          </div>
+          <div class="cartao" data-build="3">
+            <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"/></svg></div>
+            <h3>Envio idempotente</h3>
+            <p>Filas costumam reentregar mensagens. Sem chave, repetir o envio repete o aviso, assim como repetir a cobrança repetiu o débito.</p>
+          </div>
+        </div>
+        <p class="lead" data-build="3">Falta validar com o negócio que <b>a notificação pode chegar depois</b>. Como a fila em memória já trata parte das falhas, a necessidade de extrair <b>ainda não está comprovada</b>.</p>
+        <div class="creditos" data-build="3" id="creditos"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="rodape">
+    <button class="nav-btn" id="btn-ant" aria-label="Anterior">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <div class="pontos" id="pontos"></div>
+    <span class="contador num" id="contador"></span>
+    <span class="etapas-mini" id="etapas-mini"></span>
+    <button class="nav-btn primario" id="btn-prox" aria-label="Próximo">
+      <span id="btn-prox-txt">Avançar</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+    </button>
+  </footer>
+
+  <div class="tip" id="tip"></div>
+  <script src="app.js"></script>
+</body>
+</html>

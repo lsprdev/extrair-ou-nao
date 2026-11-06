@@ -23,3 +23,17 @@ python -m pytest -q
 ```
 
 A rede é simulada: os scripts não fazem cobranças nem enviam mensagens reais.
+
+## Apresentação
+
+[apresentacao/](apresentacao/) traz uma apresentação animada dos resultados, por Gabriel Alves e Gabriel Lopes Pereira.
+Quando o servidor sobe, ele roda `meu_ensaio.py`, `meu_quantum.py` e `base/ensaio.py` e serve os números ao frontend.
+O servidor só usa a biblioteca padrão do Python.
+
+```bash
+docker compose up -d --build        # http://localhost:8000
+PORTA=9000 docker compose up -d     # outra porta
+python apresentacao/server.py       # sem Docker
+```
+
+Atalhos: `→`/`espaço` avançam, `←` volta, `F` abre tela cheia, `T` troca o tema. Cada slide guarda a etapa na URL (`#6.2`).
