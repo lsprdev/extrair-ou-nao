@@ -248,6 +248,12 @@ class Manipulador(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(ESTATICOS), **kwargs)
 
+    def end_headers(self):
+        # Sem cache: depois de atualizar a apresentação, um recarregar basta.
+        if "Cache-Control" not in "".join(h.decode("latin-1") for h in getattr(self, "_headers_buffer", [])):
+            self.send_header("Cache-Control", "no-cache")
+        super().end_headers()
+
     def _json(self, corpo: bytes, status=HTTPStatus.OK):
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")

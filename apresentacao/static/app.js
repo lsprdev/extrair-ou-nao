@@ -1123,21 +1123,20 @@ async function iniciar() {
     $("#carregando").innerHTML = `<div style="text-align:center;color:var(--text-2)"><h2>Servidor indisponível</h2><p>Rode <code>python apresentacao/server.py</code> ou <code>docker compose up</code>.</p></div>`;
     return;
   }
-  montarCapa();
-  gCenario = criarGrafo($("#grafo-cenario"));
-  gCenario.mostrarNos(false);
-  Object.values(gCenario.ars).forEach(({ g }) => g.classList.add("desenhando"));
-  montarHipoteses();
-  montarSequencia();
-  montarWaffle();
-  montarComparacao();
-  montarResultado();
-  montarFormas();
-  montarQuanta();
-  montarFalhas();
-  montarTempestade();
-  montarAlternativas();
-  montarCusto();
+  // Cada slide monta separado: um erro num deles não trava a apresentação inteira.
+  const etapas = [
+    montarCapa,
+    () => {
+      gCenario = criarGrafo($("#grafo-cenario"));
+      gCenario.mostrarNos(false);
+      Object.values(gCenario.ars).forEach(({ g }) => g.classList.add("desenhando"));
+    },
+    montarHipoteses, montarSequencia, montarWaffle, montarComparacao, montarResultado, montarFormas,
+    montarQuanta, montarFalhas, montarTempestade, montarAlternativas, montarCusto,
+  ];
+  for (const etapa of etapas) {
+    try { etapa(); } catch (erro) { console.error(`Falha ao montar (${etapa.name || "cenário"}):`, erro); }
+  }
   setInterval(tique, 500);
   montarMoldura();
   const lerHash = () => {
