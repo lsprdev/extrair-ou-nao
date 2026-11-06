@@ -803,3 +803,37 @@ kbd {
 .checklist li.on i::after { content: "✓"; color: #fff; font-size: 13px; font-weight: 800; }
 #s-quanta .cli .linha-cmd { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #s-quanta .cli { cursor: help; }
+
+/* hipóteses simplificadas */
+.reguas { padding: 10px 28px; margin-top: 4px; }
+.regua { display: grid; grid-template-columns: 240px 1fr 260px; gap: 28px; align-items: center; padding: 22px 0; border-bottom: 1px solid var(--border); }
+.regua:last-child { border-bottom: 0; }
+.regua-txt b { display: block; font-size: 18px; }
+.regua-txt span { font-size: 13px; color: var(--muted); }
+.regua-trilho { position: relative; height: 10px; border-radius: 99px; background: var(--surface-3); }
+.regua-trilho i { position: absolute; top: 50%; transition: left 1.1s cubic-bezier(.2,.8,.2,1), width 1.1s cubic-bezier(.2,.8,.2,1), opacity .4s; }
+.regua-trilho .liga { height: 4px; margin-top: -2px; background: color-mix(in srgb, var(--s1) 55%, transparent); border-radius: 2px; }
+.regua-trilho .pb, .regua-trilho .pn { width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; border: 3px solid var(--surface); }
+.regua-trilho .pb { background: var(--ref); }
+.regua-trilho .pn { background: var(--s1); width: 22px; height: 22px; margin: -11px 0 0 -11px; box-shadow: 0 0 16px color-mix(in srgb, var(--s1) 60%, transparent); }
+.regua-val { display: flex; align-items: center; gap: 10px; font-size: 22px; justify-content: flex-end; }
+.regua-val s { color: var(--muted); font-size: 16px; }
+.regua-val .seta { color: var(--muted); font-size: 16px; }
+.regua-val b { font-weight: 800; }
+.muda { font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 99px; white-space: nowrap; }
+.muda.pior { color: var(--serious); background: color-mix(in srgb, var(--serious) 14%, transparent); }
+.muda.melhor { color: var(--good); background: color-mix(in srgb, var(--good) 14%, transparent); }
+.mantidos { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 16px; }
+.mantidos-rot { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent-2); margin-right: 6px; }
+.mantido { padding: 8px 14px; border-radius: 99px; border: 1px solid var(--border-2); background: color-mix(in srgb, var(--surface) 70%, transparent); font-size: 14px; color: var(--text-2); }
+.mantido b { color: var(--text); margin-right: 6px; }
+#s-hipoteses .legenda-serie { align-items: center; }
+@media (max-width: 760px) {
+  .regua { grid-template-columns: 1fr; gap: 12px; }
+  .regua-val { justify-content: flex-start; }
+}
+.porque { margin-top: 14px; padding: 14px 20px; border-radius: 14px; border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); background: var(--accent-soft); display: flex; gap: 20px; align-items: flex-start; }
+.porque-rot { font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); padding-top: 3px; white-space: nowrap; }
+.porque ul { margin: 0; padding-left: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 28px; color: var(--text-2); font-size: 15px; line-height: 1.45; }
+.porque li b { color: var(--text); }
+@media (max-width: 760px) { .porque { flex-direction: column; } .porque ul { grid-template-columns: 1fr; } }

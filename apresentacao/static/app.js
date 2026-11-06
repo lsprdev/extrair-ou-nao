@@ -407,32 +407,51 @@ ganchos["s-cenario"] = (b, entrou) => {
 };
 
 /* ================================================================ 3 · Hipóteses */
+// O que muda em palavras: "o dobro", "a metade" ou a variação em %.
+function comoMudou(base, novo) {
+  const r = novo / base;
+  if (Math.abs(r - 2) < 1e-9) return "o dobro";
+  if (Math.abs(r - 0.5) < 1e-9) return "a metade";
+  return (r > 1 ? "+" : "−") + fmt(Math.abs(r - 1) * 100) + "%";
+}
 function montarHipoteses() {
   const h = DADOS.parte1.hipoteses, q = DADOS.parte2.hipoteses;
-  const cards = [
-    { rot: "Mediana da rede", v: h.novo.mediana_ms, suf: " ms", antes: `${h.base.mediana_ms} ms`, dir: "sobe", org: "inv", por: "Comunicação rápida, mas com mais sobrecarga que a base." },
-    { rot: "P99 da rede", v: h.novo.p99_ms, suf: " ms", antes: `${h.base.p99_ms} ms`, dir: "sobe", org: "inv", por: "Cauda longa por contenção." },
-    { rot: "Falha sorteada", v: h.novo.falha * 100, suf: "%", antes: pct(h.base.falha, 0), dir: "desce", org: "inv", por: "Menos perdas que na campanha original. Na Parte 2, 1% por chamada." },
-    { rot: "Timeout por chamada", v: h.timeout_s, suf: " s", antes: "mantido", dir: "igual", org: "prof", por: `${pct(h.novo.perda_na_volta, 0)} das falhas sorteadas perdem a resposta na volta.` },
-    { rot: "Amostra", v: h.compras, suf: "", unid: "compras", antes: "mantida", dir: "igual", org: "prof", por: `Semente ${h.semente}, e uma varredura das sementes 1 a 10.` },
-    { rot: "Disponibilidade", v: q.disponibilidade * 100, dec: 1, suf: "%", unid: "por artefato", antes: "mantida", dir: "igual", org: "aula", por: `Mês de 30 dias = ${fmt(q.minutos_mes)} minutos.` },
+  const linhas = [
+    { tit: "Tempo típico de resposta", sub: "mediana da rede", b: h.base.mediana_ms, n: h.novo.mediana_ms, max: 50, f: (v) => `${fmt(v)} ms`, ruim: true },
+    { tit: "Tempo nos piores casos", sub: "P99: 1 em cada 100 chamadas", b: h.base.p99_ms, n: h.novo.p99_ms, max: 800, f: (v) => `${fmt(v)} ms`, ruim: true },
+    { tit: "Chamadas que falham", sub: "falha sorteada", b: h.base.falha * 100, n: h.novo.falha * 100, max: 2.5, f: (v) => `${fmt(v)}%`, ruim: false },
   ];
-  const grade = $("#hip-grade");
-  cards.forEach((c, i) => {
-    const seta = { sobe: "↑ maior", desce: "↓ menor", igual: "= igual" }[c.dir];
-    const d = el("div", { class: "cartao hip", "data-build": "0", style: `transition-delay:${i * 90}ms` }, `
-      <div class="rot">${c.rot}<span class="fonte ${c.org}">${{ inv: "inventado por nós", prof: "padrão do professor", aula: "hipótese da Aula 17" }[c.org]}</span></div>
-      <div class="valor num"><span class="cv" data-alvo="${c.v}" data-dec="${c.dec || 0}" data-suf="${c.suf}">0</span>${c.unid ? `<small>${c.unid}</small>` : ""}</div>
-      <div class="antes"><span class="seta-mudou ${c.dir}">${seta}</span>${c.dir === "igual" ? `<span>${c.antes}</span>` : `base: <s>${c.antes}</s>`}</div>
-      <div class="por">${c.por}</div>`, grade);
-    d.dataset.i = i;
-  });
+  $("#reguas").innerHTML = linhas.map((l) => `
+    <div class="regua" data-b="${(100 * l.b) / l.max}" data-n="${(100 * l.n) / l.max}">
+      <div class="regua-txt"><b>${l.tit}</b><span>${l.sub}</span></div>
+      <div class="regua-trilho"><i class="liga"></i><i class="pb" data-tip="Base do professor: ${l.f(l.b)}"></i><i class="pn" data-tip="Nosso cenário: ${l.f(l.n)}"></i></div>
+      <div class="regua-val num"><s>${l.f(l.b)}</s><span class="seta">→</span><b>${l.f(l.n)}</b><span class="muda ${l.ruim ? "pior" : "melhor"}">${comoMudou(l.b, l.n)}</span></div>
+    </div>`).join("");
+  const mantidos = [
+    ["Timeout", `${fmt(h.timeout_s)} s por chamada`],
+    ["Amostra", `${fmt(h.compras)} compras, semente ${h.semente}`],
+    ["Disponibilidade", `${fmt(q.disponibilidade * 100, 1)}% por artefato (Aula 17)`],
+  ];
+  $("#mantidos").innerHTML = `<span class="mantidos-rot">Mantido do professor</span>` +
+    mantidos.map(([k, v]) => `<span class="mantido"><b>${k}</b>${v}</span>`).join("");
 }
 ganchos["s-hipoteses"] = (b, entrou) => {
   if (!entrou) return;
-  $$("#hip-grade .cv").forEach((s, i) => {
-    s.dataset.v = 0;
-    setTimeout(() => contar(s, +s.dataset.alvo, { dur: 1100, dec: +s.dataset.dec, suf: s.dataset.suf }), 150 + i * 90);
+  $$("#reguas .regua").forEach((r, i) => {
+    const pb = $(".pb", r), pn = $(".pn", r), liga = $(".liga", r);
+    const xb = +r.dataset.b, xn = +r.dataset.n;
+    for (const e of [pb, pn, liga]) e.style.transition = "none";
+    pb.style.left = pn.style.left = liga.style.left = xb + "%";
+    liga.style.width = "0%";
+    pb.style.opacity = pn.style.opacity = 0;
+    void r.offsetWidth;
+    for (const e of [pb, pn, liga]) e.style.transition = "";
+    setTimeout(() => { pb.style.opacity = 1; pn.style.opacity = 1; }, 250 + i * 250);
+    setTimeout(() => {
+      pn.style.left = xn + "%";
+      liga.style.left = Math.min(xb, xn) + "%";
+      liga.style.width = Math.abs(xn - xb) + "%";
+    }, 650 + i * 250);
   });
 };
 
